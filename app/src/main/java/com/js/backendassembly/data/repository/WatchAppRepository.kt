@@ -20,7 +20,6 @@ const val CURRENT_USER: String = "test_user"
 object WatchAppRepository {
     const val POSTERS_BASE_URL = "https://image.tmdb.org/t/p/w500"
 
-
     object Movies {
 
         suspend fun getApiMovieDetails(movieId: Int): MovieDetailsDto? {
@@ -36,8 +35,8 @@ object WatchAppRepository {
         suspend fun getMovieProfile(movieId: Int): MovieProfile? {
             return withContext(Dispatchers.IO) {
                 val apiMovieDetails = async { getApiMovieDetails(movieId) }
-                val potentialUserRating = async { MovieFirestore.RatingData.getMovieRating(CURRENT_USER, movieId.toString()) }
-                val containingLists = async { MovieFirestore.ListData.getListsContainingMovie(CURRENT_USER, movieId.toString()) }
+                val potentialUserRating = async { MovieFirestore.Ratings.getMovieRating(CURRENT_USER, movieId.toString()) }
+                val containingLists = async { MovieFirestore.Lists.getListsContainingMovie(CURRENT_USER, movieId.toString()) }
                 val details = apiMovieDetails.await() ?: return@withContext null
                 MovieProfile(
                     movieDetails = details,
@@ -86,8 +85,8 @@ object WatchAppRepository {
         suspend fun getTvSeriesProfile(seriesId: Int): TvSeriesProfile? {
             return withContext(Dispatchers.IO) {
                 val apiTvSeriesDetails = async { getApiTvSeriesDetails(seriesId) }
-                val potentialUserRating = async { MovieFirestore.RatingData.getMovieRating(CURRENT_USER, seriesId.toString()) }
-                val containingLists = async { MovieFirestore.ListData.getListsContainingMovie(CURRENT_USER, seriesId.toString()) }
+                val potentialUserRating = async { MovieFirestore.Ratings.getMovieRating(CURRENT_USER, seriesId.toString()) }
+                val containingLists = async { MovieFirestore.Lists.getListsContainingMovie(CURRENT_USER, seriesId.toString()) }
                 val details = apiTvSeriesDetails.await() ?: return@withContext null
                 TvSeriesProfile(
                     seriesDetails = details,

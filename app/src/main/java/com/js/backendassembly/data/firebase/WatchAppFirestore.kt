@@ -14,23 +14,29 @@ val testUsr = User(
     email = "test@example.com",
     username = "test_user_123",
     pfpPath = "pfp.png",
-    watchedMovies = emptyList(),
     watchedMoviesCount = 0,
-    watchedSeriesCount = 0,
+    watchedTvSeriesCount = 0,
     favouritesCount = 0,
     ratingsCount = 0
 )
 
 val favouritesTemplate = UserList(
     name = "Ulubione",
-    description = "Filmy, które wyjątkowo doceniłeś",
+    description = "Filmy i seriale, które wyjątkowo doceniłeś",
     movies = emptyList(),
     series = emptyList()
 )
 
 val bucketlistTemplate = UserList(
     name = "Kupka Wstydu",
-    description = "Filmy, które już dawno powinieneś był obejrzeć",
+    description = "Filmy i seriale, które już dawno powinieneś był obejrzeć",
+    movies = emptyList(),
+    series = emptyList()
+)
+
+val watchedTemplate = UserList(
+    name = "Obejrzane",
+    description = "Filmy i seriale, które już obejrzałeś",
     movies = emptyList(),
     series = emptyList()
 )
@@ -60,18 +66,19 @@ object MovieFirestore {
             firestoreDb.collection("users").document(testUsr.uid).set(testUsr).await()
             firestoreDb.collection("users").document(testUsr.uid).collection("lists").document("favourites").set(favouritesTemplate).await()
             firestoreDb.collection("users").document(testUsr.uid).collection("lists").document("bucketlist").set(bucketlistTemplate).await()
-            RatingData.addMovieRating(testUsr.uid, ratingTest)
-            MovieData.addMovieToFavourites(testUsr.uid, 11)
-            MovieData.addMovieToBucketlist(testUsr.uid, 11)
-            ListData.createUserList(testUsr.uid, customListTest)
-            MovieData.addMovieToListByListName(testUsr.uid, "Guilty Pleasures", 11)
+            Ratings.addMovieRating(testUsr.uid, ratingTest)
+            Movies.addMovieToFavourites(testUsr.uid, 11)
+            Movies.addMovieToBucketlist(testUsr.uid, 11)
+            Lists.createUserList(testUsr.uid, customListTest)
+            Movies.addMovieToListByListName(testUsr.uid, "Guilty Pleasures", 11)
         } catch (e: Exception) {
             Log.e("MovieFirestore", "Seeding Failure", e)
         }
     }
 
-    object UserData {
-        suspend fun getUserLists(userId: String): List<UserList> {
+    object Users {
+        
+        suspend fun getCurrentUserLists(userId: String): List<UserList> {
             return try {
                 val snapshot = firestoreDb.collection("users")
                     .document(userId)
@@ -98,9 +105,30 @@ object MovieFirestore {
                 emptyList()
             }
         }
+
+//        suspend fun getUsersWatchedMedia(userId: String): List<Int> {
+//            return try {
+//                //
+//            } catch (e: Exception) {
+//                Log.e("Movie Firestore", "Could not get movies watched by user: $userId", e)
+//                emptyList()
+//            }
+//        }
+
+        suspend fun addUser(userId: String) {
+            firestoreDb.collection("users").add(userId)
+            // maybe requires more data to insert like default values or whole user instance as a pattern
+        }
+
+        suspend fun deleteUser(userId: String) {
+            try {
+                firestoreDb.collection("users").document(userId).delete().await()
+            } catch (e: Exception) { Log.e("WatchAppFirestore", "Could not delete user", e) }
+        }
+        
     }
 
-    object ListData {
+    object Lists {
 
         suspend fun createUserList(userId: String, newList: UserList) {
             try {
@@ -118,7 +146,21 @@ object MovieFirestore {
             }
         }
 
-        //suspend fun deleteUserList(userId: String, listId: String) {}
+        suspend fun deleteUserList(userId: String, listId: String) {
+            if (listId == "favourites" || listId == "bucketlist" || listId == "watched") {
+                throw Exception("Illegal Action! Cannot delete default lists")
+            }
+            try {
+                firestoreDb.collection("users")
+                    .document(userId)
+                    .collection("lists")
+                    .document(listId)
+                    .delete()
+                    .await()
+            } catch (e: Exception) {
+                Log.e("WatchAppFirestore", "Could not delete user list", e)
+            }
+        }
 
         suspend fun getListsContainingMovie(userId: String, movieId: String): List<String> {
             return try {
@@ -137,7 +179,7 @@ object MovieFirestore {
 
     }
 
-    object RatingData {
+    object Ratings {
         suspend fun getMovieRating(userId: String, movieId: String): Rating? {
             return try {
                 val result = firestoreDb.collection("users")
@@ -178,7 +220,7 @@ object MovieFirestore {
         //suspend fun deleteMovieRating(userId: String, movieId: String) {}
     }
 
-    object MovieData {
+    object Movies {
 
         //suspend fun addCustomMovie(userId: String) {}
         //suspend delete addCustomMovie(userId: String) {}
