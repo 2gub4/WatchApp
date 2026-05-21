@@ -86,6 +86,7 @@ interface ITmdbEndpoints {
     // endpoints for searching
     @GET("search/movie")
     suspend fun searchMovies(
+        @Query("query") queryInput: String,
         @Query("page") page: Int,
         @Query("api_key") apiKey: String? = null,
         @Query("language") language: String? = null,
@@ -94,9 +95,19 @@ interface ITmdbEndpoints {
 
     @GET("search/tv")
     suspend fun searchTvSeries(
+        @Query("query") queryInput: String,
         @Query("page") page: Int,
         @Query("api_key") apiKey: String? = null,
         @Query("language") language: String? = null,
         @Query("include_adult") includeAdultContent: Boolean = false
     ): TvSeriesPageDto
+
+//    @GET("search/multi")
+//    suspend fun searchMulti(
+//        @Query("query") queryInput: String,
+//        @Query("page") page: Int,
+//        @Query("api_key") apiKey: String? = null,
+//        @Query("language") language: String? = null,
+//        @Query("include_adult") includeAdultContent: Boolean = false
+//    ): MultiPageDto
 }

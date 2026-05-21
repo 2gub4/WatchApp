@@ -41,7 +41,7 @@ object TmdbApi {
             }
         }
 
-        suspend fun fetchMoviesPage(listType: String /*could be changed to enum*/, pageNumber: Int) : TmdbApiResult<MoviesPageDto> {
+        suspend fun fetchMoviesPage(listType: String /*could be changed to enum later*/, pageNumber: Int) : TmdbApiResult<MoviesPageDto> {
             return withContext(Dispatchers.IO) {
                 try {
                     val moviesPageDto = when (listType) {
@@ -58,6 +58,16 @@ object TmdbApi {
             }
         }
 
+        suspend fun fetchSearchedMovies(queryInput: String, pageNumber: Int) : TmdbApiResult<MoviesPageDto> {
+            return withContext(Dispatchers.IO) {
+                try {
+                    val moviesPageDto = api.searchMovies(queryInput, pageNumber, API_KEY, LANG_PL)
+                    TmdbApiResult.OnSuccess(moviesPageDto)
+                } catch (e: Throwable) {
+                    TmdbApiResult.OnFailure(e)
+                }
+            }
+        }
     }
 
     object TvSeriesData {
@@ -87,6 +97,20 @@ object TmdbApi {
                 }
             }
         }
+
+        suspend fun fetchSearchedTvSeries(queryInput: String, pageNumber: Int) : TmdbApiResult<TvSeriesPageDto> {
+            return withContext(Dispatchers.IO) {
+                try {
+                    val tvSeriesPageDto = api.searchTvSeries(queryInput, pageNumber, API_KEY, LANG_PL)
+                    TmdbApiResult.OnSuccess(tvSeriesPageDto)
+                } catch (e: Throwable) {
+                    TmdbApiResult.OnFailure(e)
+                }
+            }
+        }
     }
 
+    suspend fun mapToGeneralOverview() {
+        
+    }
 }

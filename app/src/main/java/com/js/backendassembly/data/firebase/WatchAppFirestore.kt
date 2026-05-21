@@ -236,6 +236,36 @@ object MovieFirestore {
             }
         }
 
+        suspend fun markMovieAsWatched(userId: String, movieId: Int) {
+            try {
+                firestoreDb.collection("users")
+                    .document(userId)
+                    .update(
+                        "watchedMoviesCount", FieldValue.increment(1),
+                        "watchedMovies", FieldValue.arrayUnion(movieId)
+                    ).await()
+            } catch (e: Exception) {
+                Log.e("Movie Firestore", "Could not mark movie as watched", e)
+            }
+        }
+
+        suspend fun getWatchedMovies(userId: String): List<Int>? {
+            return try {
+                val snap = firestoreDb.collection("users")
+                    .document(userId)
+                    .get()
+                    .await()
+                if (!snap.exists()) {
+                    throw Exception("Could not find such user")
+                }
+                val watchedList = snap.get("watchedMovies") as? List<*>
+                watchedList?.map { it.toString().toInt() }
+            } catch (e: Exception) {
+                Log.e("Movie Firestore", "Could not get watched movies", e)
+                null
+            }
+        }
+
         //suspend fun removeMovieFromFavourites(userId: String, movieId: Int) {}
         //suspend fun removeMovieFromBucketlist(userId: String, movieId: Int) {}
         //suspend fun removeMovieFromList(userId: String, listId: String, movieId: Int) {}

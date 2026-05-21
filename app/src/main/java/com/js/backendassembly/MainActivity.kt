@@ -42,8 +42,6 @@ class MainActivity : ComponentActivity() {
 //                        Box(modifier = Modifier.weight(1f)) {
 //                            ApiTesterScreen()
 //                        }
-
-                        // Zmieniono na LazyColumn dla lepszej obsługi wielu sekcji z możliwością scrollowania
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(bottom = 24.dp)
@@ -68,7 +66,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun ProfileSection() {
     val coroutineScope = rememberCoroutineScope()
-    //var seedingStatus by remember { mutableStateOf("") }
     var movieProfile by remember { mutableStateOf<MovieProfile?>(null) }
     var profileStatus by remember { mutableStateOf("") }
 
@@ -147,7 +144,7 @@ fun ProfileSection() {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = "Obsada: ${profile.getTop5Actors().joinToString { it.name }}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Reżyseria: ${profile.getDirector()?.name ?: "Brak"}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(text = "Reżyseria: ${profile.getDirector().name}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
         }
@@ -273,6 +270,7 @@ enum class QueryMode(val displayName: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@Deprecated("Replaced with ApiTesterScreen")
 fun ApiTesterScreen() {
     var endpointInput by remember { mutableStateOf("popular") }
     var resultText by remember { mutableStateOf("result will appear here") }
@@ -280,8 +278,6 @@ fun ApiTesterScreen() {
     var expanded by remember { mutableStateOf(false) }
     var selectedMode by remember { mutableStateOf(QueryMode.MOVIE) }
     var currentImageUrl by remember { mutableStateOf<String?>(null) }
-
-    val coroutineScope = rememberCoroutineScope() // Zachowane do ewentualnego przyszłego użycia
     val pageNumber = "1"
 
     Column(
