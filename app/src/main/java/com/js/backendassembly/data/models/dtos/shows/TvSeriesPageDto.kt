@@ -1,7 +1,9 @@
 package com.js.backendassembly.data.models.dtos.shows
 
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class TvSeriesPageDto(
     @SerialName("page") val page: Int,
     @SerialName("results") val results: List<TvSeriesOverviewDto>,

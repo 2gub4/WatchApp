@@ -11,6 +11,7 @@ data class User(
     val username: String? = null,
     @ServerTimestamp val registrationDate: Date? = null,
     val pfpPath: String = "default_pfp.png",
+    val watchedMovies: List<Int> = emptyList(),
     val watchedMoviesCount: Int = 0,
     val watchedSeriesCount: Int = 0,
     val favouritesCount: Int = 0,

@@ -82,13 +82,13 @@ object TmdbApi {
             }
         }
 
-        suspend fun fetchTvSeriesPage(listType: String, pageNumber: Int) : TmdbApiResult<TvSeriesPageDto> {
+        suspend fun fetchTvSeriesPage(listType: String /*change to enum in future*/, pageNumber: Int) : TmdbApiResult<TvSeriesPageDto> {
             return withContext(Dispatchers.IO) {
                 try {
                     val tvSeriesPageDto = when (listType) {
                         "popular" -> api.getPopularTvSeries(pageNumber, API_KEY, LANG_PL)
                         "top_rated" -> api.getTopRatedTvSeries(pageNumber, API_KEY, LANG_PL)
-                        "now_playing" -> api.getOnAirTvSeries(pageNumber, API_KEY, LANG_PL)
+                        "on_air" -> api.getOnAirTvSeries(pageNumber, API_KEY, LANG_PL)
                         else -> throw IllegalArgumentException("Invalid list type: $listType")
                     }
                     TmdbApiResult.OnSuccess(tvSeriesPageDto)

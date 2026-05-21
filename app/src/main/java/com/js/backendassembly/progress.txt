@@ -2,3 +2,7 @@
 2. stworzono interfejs dla profili mediów oraz klasę TvSeriesProfile
 3. stworzono dto dla seriali telewizyjnych
 4. dokonano podziału między filmowymi, a serialowymi modelami dto dla czytelności
+5. stworzono ednpointy odpowiedzialne za wyszukowanie mediów
+6. dodano nowe endpointy do MovieRepository
+7. dodano nowe odwołania do bazy danych
+8. dodano do wzoru użytkownika pole o nazwie watchedMovies z listą ID obejrzanych filmów

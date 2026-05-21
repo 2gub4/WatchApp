@@ -14,6 +14,7 @@ val testUsr = User(
     email = "test@example.com",
     username = "test_user_123",
     pfpPath = "pfp.png",
+    watchedMovies = emptyList(),
     watchedMoviesCount = 0,
     watchedSeriesCount = 0,
     favouritesCount = 0,
