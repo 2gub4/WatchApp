@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.BackendAssembly" parent="android:Theme.Material.Light.NoActionBar" />
+    <!--<style name="Theme.BackendAssembly" parent="android:Theme.Material.Light.NoActionBar" />-->
+    <style name="Theme.WatchApp" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.WatchApp.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">
+            @color/splash_black
+        </item>
+        <item name="windowSplashScreenAnimatedIcon">
+            @drawable/watchapp_logo
+        </item>
+        <item name="postSplashScreenTheme">
+            @style/Theme.WatchApp
+        </item>
+    </style>
 </resources>
