@@ -10,6 +10,8 @@ data class User(
     val email: String? = null,
     val username: String? = null,
     @ServerTimestamp val registrationDate: Date? = null,
+    val birthYear: Int? = null,
+    val gender: String? = null, //mabe Boolean ?
     val pfpPath: String = "default_pfp.png",
     val watchedMoviesCount: Int = 0,
     val watchedTvSeriesCount: Int = 0,

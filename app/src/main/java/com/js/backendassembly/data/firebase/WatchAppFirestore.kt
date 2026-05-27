@@ -61,20 +61,20 @@ val ratingTest = Rating(
 object MovieFirestore {
     val firestoreDb by lazy { Firebase.firestore }
 
-    suspend fun initialSeeding() {
-        try {
-            firestoreDb.collection("users").document(testUsr.uid).set(testUsr).await()
-            firestoreDb.collection("users").document(testUsr.uid).collection("lists").document("favourites").set(favouritesTemplate).await()
-            firestoreDb.collection("users").document(testUsr.uid).collection("lists").document("bucketlist").set(bucketlistTemplate).await()
-            Ratings.addMovieRating(testUsr.uid, ratingTest)
-            Movies.addMovieToFavourites(testUsr.uid, 11)
-            Movies.addMovieToBucketlist(testUsr.uid, 11)
-            Lists.createUserList(testUsr.uid, customListTest)
-            Movies.addMovieToListByListName(testUsr.uid, "Guilty Pleasures", 11)
-        } catch (e: Exception) {
-            Log.e("MovieFirestore", "Seeding Failure", e)
-        }
-    }
+//    suspend fun initialSeeding() {
+//        try {
+//            firestoreDb.collection("users").document(testUsr.uid).set(testUsr).await()
+//            firestoreDb.collection("users").document(testUsr.uid).collection("lists").document("favourites").set(favouritesTemplate).await()
+//            firestoreDb.collection("users").document(testUsr.uid).collection("lists").document("bucketlist").set(bucketlistTemplate).await()
+//            Ratings.addMovieRating(testUsr.uid, ratingTest)
+//            Movies.addMovieToFavourites(testUsr.uid, 11)
+//            Movies.addMovieToBucketlist(testUsr.uid, 11)
+//            Lists.createUserList(testUsr.uid, customListTest)
+//            Movies.addMovieToListByListName(testUsr.uid, "Guilty Pleasures", 11)
+//        } catch (e: Exception) {
+//            Log.e("MovieFirestore", "Seeding Failure", e)
+//        }
+//    }
 
     object Users {
         
@@ -217,13 +217,28 @@ object MovieFirestore {
             }
         }
 
-        //suspend fun deleteMovieRating(userId: String, movieId: String) {}
+        suspend fun deleteMovieRating(userId: String, movieId: String) {
+            try {
+                firestoreDb.collection("users")
+                    .document(userId)
+                    .collection("ratings")
+                    .document(movieId)
+                    .delete()
+                    .await()
+            } catch (e: Exception) {
+                Log.e("WatchAppFirestore", "Could not remove movie rating", e)
+            }
+        }
+
     }
 
     object Movies {
 
         //suspend fun addCustomMovie(userId: String) {}
         //suspend delete addCustomMovie(userId: String) {}
+
+
+        // two following methods might be of no use
         fun addMovieToFavourites(userId: String, movieId: Int) {
             try {
                 firestoreDb.collection("users")
@@ -309,10 +324,39 @@ object MovieFirestore {
             }
         }
 
+        suspend fun removeMovieFromList(userId: String, listId: String, movieId: Int) {
+            try {
+                firestoreDb.collection("users")
+                    .document(userId)
+                    .collection("lists")
+                    .document(listId)
+                    .update("movies", FieldValue.arrayRemove(movieId))
+            } catch (e: Exception) {
+                Log.e("WatchAppFirestore", "Could not remove movie from list", e)
+            }
+
+        }
+
+        suspend fun removeMovieFromListByName(userId: String, listName: String, movieId: Int) {
+            try {
+                val snap = firestoreDb.collection("users")
+                    .document(userId)
+                    .collection("lists")
+                    .whereEqualTo("name", listName)
+                    .get()
+                    .await()
+                if (snap.isEmpty) {
+                    throw Exception("No list with such name in database!")
+                }
+                val listDoc = snap.documents[0].reference
+                listDoc.update("movies", FieldValue.arrayRemove(movieId))
+            } catch (e: Exception) {
+                Log.e("WatchAppFirestore", "Could not remove movie from list", e)
+            }
+        }
+
+
         //suspend fun removeMovieFromFavourites(userId: String, movieId: Int) {}
         //suspend fun removeMovieFromBucketlist(userId: String, movieId: Int) {}
-        //suspend fun removeMovieFromList(userId: String, listId: String, movieId: Int) {}
-        //suspend fun removeMovieFromListByName(userId: String, listName: String, movieId: Int) {}
-
     }
 }

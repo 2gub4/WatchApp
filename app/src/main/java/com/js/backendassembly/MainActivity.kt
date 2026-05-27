@@ -2,6 +2,7 @@ package com.js.backendassembly
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,6 +10,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,38 +39,84 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
+                // Stan kontrolujący, który profil jest aktualnie otwarty
+                var selectedMovieId by remember { mutableStateOf<Int?>(null) }
+                var selectedSeriesId by remember { mutableStateOf<Int?>(null) }
+
+                // Przejmujemy systemowy przycisk "Wstecz" na telefonie, aby zamykał okno profilu
+                BackHandler(enabled = selectedMovieId != null || selectedSeriesId != null) {
+                    selectedMovieId = null
+                    selectedSeriesId = null
+                }
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Column(modifier = Modifier.fillMaxSize()) {
-//                        Box(modifier = Modifier.weight(1f)) {
-//                            ApiTesterScreen()
-//                        }
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(bottom = 24.dp)
-                        ) {
-                            item {
-                                Spacer(modifier = Modifier.height(100.dp))
-                                ProfileSection()
-                                HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                    // Box pozwala nam nakładać widoki na siebie (jak warstwy w Photoshopie)
+                    Box(modifier = Modifier.fillMaxSize()) {
+
+                        // WARSTWA 1: Główna zawartość (Lista). Zawsze tu jest, więc pamięta pozycję scrolla!
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(bottom = 24.dp)
+                            ) {
+                                item {
+                                    Spacer(modifier = Modifier.height(60.dp))
+                                    ProfileSection()
+                                    HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                                }
+                                item {
+                                    Spacer(modifier = Modifier.height(24.dp))
+                                    // Przekazujemy funkcję kliknięcia (zmienia ona nasz stan na wybrane ID)
+                                    MoviesListSection(
+                                        onMovieClick = { clickedId -> selectedMovieId = clickedId }
+                                    )
+                                    HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(vertical = 16.dp))
+                                }
+                                item {
+                                    TvProfileSection()
+                                    HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(vertical = 16.dp))
+                                }
+                                item {
+                                    TvSeriesListSection(
+                                        onSeriesClick = { clickedId -> selectedSeriesId = clickedId }
+                                    )
+                                    HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(vertical = 16.dp))
+                                }
+                                item {
+                                    SearchSection(
+                                        onMovieClick = { clickedId -> selectedMovieId = clickedId },
+                                        onSeriesClick = { clickedId -> selectedSeriesId = clickedId }
+                                    )
+                                }
                             }
-                            item {
-                                Spacer(modifier = Modifier.height(24.dp))
-                                MoviesListSection()
-                                HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(vertical = 16.dp))
+                        }
+
+                        // WARSTWA 2: Nowe okno z profilem filmu (Wyświetla się tylko, gdy klikniemy film)
+                        selectedMovieId?.let { movieId ->
+                            Surface(
+                                modifier = Modifier.fillMaxSize(),
+                                color = MaterialTheme.colorScheme.background
+                            ) {
+                                DynamicMovieProfileScreen(
+                                    movieId = movieId,
+                                    onBack = { selectedMovieId = null } // Zamknięcie okna
+                                )
                             }
-                            item {
-                                TvProfileSection()
-                                HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(vertical = 16.dp))
-                            }
-                            item {
-                                TvSeriesListSection()
-                                HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(vertical = 16.dp))
-                            }
-                            item {
-                                SearchSection()
+                        }
+
+                        // WARSTWA 3: Nowe okno z profilem serialu (Wyświetla się tylko, gdy klikniemy serial)
+                        selectedSeriesId?.let { seriesId ->
+                            Surface(
+                                modifier = Modifier.fillMaxSize(),
+                                color = MaterialTheme.colorScheme.background
+                            ) {
+                                DynamicTvProfileScreen(
+                                    seriesId = seriesId,
+                                    onBack = { selectedSeriesId = null } // Zamknięcie okna
+                                )
                             }
                         }
                     }
@@ -77,6 +126,142 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
+// ==========================================
+// DYNAMICZNE EKRANY PROFILOWE (OTWIERANE PO KLIKNIĘCIU)
+// ==========================================
+
+@Composable
+fun DynamicMovieProfileScreen(movieId: Int, onBack: () -> Unit) {
+    var movieProfile by remember { mutableStateOf<MovieProfile?>(null) }
+    var status by remember { mutableStateOf("Ładowanie profilu...") }
+
+    // Wywołuje się automatycznie po otwarciu ekranu
+    LaunchedEffect(movieId) {
+        val profile = WatchAppRepository.Movies.getMovieProfile(movieId)
+        if (profile != null) {
+            movieProfile = profile
+            status = ""
+        } else {
+            status = "Błąd: Nie udało się pobrać profilu."
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Górny pasek z przyciskiem powrotu
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Wróć")
+            }
+            Text("Szczegóły filmu", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        }
+        HorizontalDivider()
+
+        if (status.isNotEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(text = status, color = Color.Gray)
+            }
+        }
+
+        movieProfile?.let { profile ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
+                AsyncImage(
+                    model = "${WatchAppRepository.POSTERS_BASE_URL}${profile.movieDetails.posterPath}",
+                    contentDescription = "${profile.movieDetails.title} poster",
+                    modifier = Modifier.fillMaxWidth().height(400.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = profile.movieDetails.title, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = "Język oryginału: ${profile.movieDetails.originalLanguage}", fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(text = "Własna ocena: ${profile.rating?.overallRating ?: "Brak"}", color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(text = "Opis: ${profile.movieDetails.overview}", fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(text = "Obsada: ${profile.getTop5Actors().joinToString { it.name }}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = "Reżyseria: ${profile.getDirector()?.name ?: "Brak"}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
+        }
+    }
+}
+
+@Composable
+fun DynamicTvProfileScreen(seriesId: Int, onBack: () -> Unit) {
+    var tvProfile by remember { mutableStateOf<TvSeriesProfile?>(null) }
+    var status by remember { mutableStateOf("Ładowanie profilu...") }
+
+    LaunchedEffect(seriesId) {
+        val profile = WatchAppRepository.TvSeries.getTvSeriesProfile(seriesId)
+        if (profile != null) {
+            tvProfile = profile
+            status = ""
+        } else {
+            status = "Błąd: Nie udało się pobrać profilu."
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Wróć")
+            }
+            Text("Szczegóły serialu", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        }
+        HorizontalDivider()
+
+        if (status.isNotEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(text = status, color = Color.Gray)
+            }
+        }
+
+        tvProfile?.let { profile ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
+                AsyncImage(
+                    model = "${WatchAppRepository.POSTERS_BASE_URL}${profile.seriesDetails.posterPath}",
+                    contentDescription = "${profile.seriesDetails.title} poster",
+                    modifier = Modifier.fillMaxWidth().height(400.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = profile.seriesDetails.title, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = "Ilość sezonów: ${profile.seriesDetails.numberOfSeasons}", fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(text = "Własna ocena: ${profile.rating?.overallRating ?: "Brak"}", color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(text = "Opis: ${profile.seriesDetails.overview}", fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(text = "Obsada: ${profile.getTop10Actors().joinToString { it.name }}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = "Twórca: ${profile.seriesDetails.createdBy.firstOrNull()?.name ?: "Brak"}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
+        }
+    }
+}
+
+
+// ==========================================
+// SEKCJE ISTNIEJĄCE
+// ==========================================
+
 @Composable
 fun ProfileSection() {
     val coroutineScope = rememberCoroutineScope()
@@ -84,33 +269,15 @@ fun ProfileSection() {
     var profileStatus by remember { mutableStateOf("") }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-//        Button(
-//            onClick = {
-//                coroutineScope.launch {
-//                    seedingStatus = "Trwa seeding..."
-//                    MovieFirestore.initialSeeding()
-//                    seedingStatus = "Seeding zakończony!"
-//                }
-//            },
-//            modifier = Modifier.fillMaxWidth().height(50.dp)
-//        ) {
-//            Text("Wykonaj Firebase Initial Seeding", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-//        }
-//
-//        if (seedingStatus.isNotEmpty()) {
-//            Text(text = seedingStatus, modifier = Modifier.padding(top = 4.dp), color = Color.Gray)
-//        }
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
                 coroutineScope.launch {
                     profileStatus = "Pobieranie profilu..."
-                    val profile = WatchAppRepository.Movies.getMovieProfile(803796)
+                    val profile = WatchAppRepository.Movies.getMovieProfile(11)
                     if (profile != null) {
                         movieProfile = profile
                         profileStatus = "Pobrano pomyślnie!"
@@ -121,7 +288,7 @@ fun ProfileSection() {
             },
             modifier = Modifier.fillMaxWidth().height(50.dp)
         ) {
-            Text("Pobierz profil filmu (ID: 803796)", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text("Pobierz profil filmu (ID: 11)", fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
 
         if (profileStatus.isNotEmpty()) {
@@ -130,20 +297,9 @@ fun ProfileSection() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Movie Profile
         movieProfile?.let { profile ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 700.dp) // Zostawiamy ograniczenie wysokości, jeśli to konieczne
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                    // Usunięto verticalScroll z karty, ponieważ nadrzędny Column zmienił się w LazyColumn.
-                    // Zagnieżdżone scrolle w tym samym kierunku powodują problemy.
-                ) {
+            Card(modifier = Modifier.fillMaxWidth().heightIn(max = 700.dp)) {
+                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                     AsyncImage(model="${WatchAppRepository.POSTERS_BASE_URL}${profile.movieDetails.posterPath}", contentDescription = "${profile.movieDetails.title} poster")
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(text = "Tytuł: ${profile.movieDetails.title}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
@@ -158,126 +314,12 @@ fun ProfileSection() {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = "Obsada: ${profile.getTop5Actors().joinToString { it.name }}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Reżyseria: ${profile.getDirector()}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(text = "Reżyseria: ${profile.getDirector()?.name ?: "Brak"}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
         }
     }
 }
-
-@Composable
-fun MoviesListSection() {
-    val coroutineScope = rememberCoroutineScope()
-    var moviesList by remember { mutableStateOf<List<MovieOverviewDto>>(emptyList()) }
-    var listStatus by remember { mutableStateOf("") }
-    var listLength by remember { mutableIntStateOf(0) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Button(
-            onClick = {
-                coroutineScope.launch {
-                    listStatus = "Pobieranie listy..."
-                    // Wywołanie repozytorium z listType "now_playing" i stroną 1
-                    val moviesPage = WatchAppRepository.Movies.getMoviePage(pageNumber = 1, listType = "now_playing")
-
-                    if (moviesPage != null && moviesPage.results.isNotEmpty()) {
-                        moviesList = moviesPage.results
-                        listLength = moviesPage.results.size
-                        listStatus = "Pobrano pomyślnie!"
-                    } else {
-                        moviesList = emptyList()
-                        listLength = 0
-                        listStatus = "Brak danych do wyświetlenia."
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxWidth().height(50.dp)
-        ) {
-            Text("Teraz grane filmy (Strona 1)", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        if (listStatus.isNotEmpty()) {
-            Text(text = listStatus, color = Color.Gray, modifier = Modifier.padding(bottom = 4.dp))
-        }
-
-        if (listLength > 0) {
-            Text(
-                text = "Ilość filmów na stronie: $listLength",
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            // Ręczne wypisanie elementów (ponieważ LazyColumn w LazyColumn to problem w Compose)
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                moviesList.forEach { movie ->
-                    MovieOverviewItem(movie = movie)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun MovieOverviewItem(movie: MovieOverviewDto) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp)
-            .clickable { /* Brak akcji zgodnie z poleceniem */ }
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Obrazek
-            if (movie.posterPath != null) {
-                AsyncImage(
-                    model = "${WatchAppRepository.POSTERS_BASE_URL}${movie.posterPath}",
-                    contentDescription = "Plakat ${movie.title}",
-                    modifier = Modifier
-                        .size(width = 60.dp, height = 90.dp)
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(width = 60.dp, height = 90.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Brak", fontSize = 10.sp, color = Color.Gray)
-                }
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Tytuł
-            Text(
-                text = movie.title,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-// ==========================================
-// NOWE SEKCJE (SERIALE I WYSZUKIWANIE)
-// ==========================================
 
 @Composable
 fun TvProfileSection() {
@@ -286,9 +328,7 @@ fun TvProfileSection() {
     var profileStatus by remember { mutableStateOf("") }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(
@@ -317,11 +357,7 @@ fun TvProfileSection() {
 
         tvProfile?.let { profile ->
             Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
+                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                     AsyncImage(model="${WatchAppRepository.POSTERS_BASE_URL}${profile.seriesDetails.posterPath}", contentDescription = "${profile.seriesDetails.title} poster")
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(text = "Tytuł: ${profile.seriesDetails.title}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
@@ -336,7 +372,6 @@ fun TvProfileSection() {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = "Obsada: ${profile.getTop10Actors().joinToString { it.name }}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Spacer(modifier = Modifier.height(8.dp))
-                    // firstOrNull zabezpiecza przed crashem jeśli twórcy brakuje w JSONie z API
                     Text(text = "Twórca: ${profile.seriesDetails.createdBy.firstOrNull()?.name ?: "Brak"}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
@@ -344,17 +379,67 @@ fun TvProfileSection() {
     }
 }
 
+
+// ==========================================
+// ZAKTUALIZOWANE LISTY WIDOKÓW Z PRZEKAZYWANIEM KLIKNIĘĆ
+// ==========================================
+
 @Composable
-fun TvSeriesListSection() {
+fun MoviesListSection(onMovieClick: (Int) -> Unit) { // Odbieramy akcję z góry
+    val coroutineScope = rememberCoroutineScope()
+    var moviesList by remember { mutableStateOf<List<MovieOverviewDto>>(emptyList()) }
+    var listStatus by remember { mutableStateOf("") }
+    var listLength by remember { mutableIntStateOf(0) }
+
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Button(
+            onClick = {
+                coroutineScope.launch {
+                    listStatus = "Pobieranie listy..."
+                    val moviesPage = WatchAppRepository.Movies.getMoviePage(pageNumber = 1, listType = "now_playing")
+                    if (moviesPage != null && moviesPage.results.isNotEmpty()) {
+                        moviesList = moviesPage.results
+                        listLength = moviesPage.results.size
+                        listStatus = "Pobrano pomyślnie!"
+                    } else {
+                        moviesList = emptyList()
+                        listLength = 0
+                        listStatus = "Brak danych do wyświetlenia."
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxWidth().height(50.dp)
+        ) {
+            Text("Teraz grane filmy (Strona 1)", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        if (listStatus.isNotEmpty()) Text(text = listStatus, color = Color.Gray, modifier = Modifier.padding(bottom = 4.dp))
+
+        if (listLength > 0) {
+            Text(text = "Ilość filmów na stronie: $listLength", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
+            Column(modifier = Modifier.fillMaxWidth()) {
+                moviesList.forEach { movie ->
+                    // Wywołujemy kliknięcie przekazując ID konkretnego filmu
+                    MovieOverviewItem(movie = movie, onClick = { onMovieClick(movie.id) })
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TvSeriesListSection(onSeriesClick: (Int) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     var seriesList by remember { mutableStateOf<List<TvSeriesOverviewDto>>(emptyList()) }
     var listStatus by remember { mutableStateOf("") }
     var listLength by remember { mutableIntStateOf(0) }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(
@@ -380,22 +465,13 @@ fun TvSeriesListSection() {
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-
-        if (listStatus.isNotEmpty()) {
-            Text(text = listStatus, color = Color.Gray, modifier = Modifier.padding(bottom = 4.dp))
-        }
+        if (listStatus.isNotEmpty()) Text(text = listStatus, color = Color.Gray, modifier = Modifier.padding(bottom = 4.dp))
 
         if (listLength > 0) {
-            Text(
-                text = "Ilość seriali na stronie: $listLength",
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
+            Text(text = "Ilość seriali na stronie: $listLength", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
             Column(modifier = Modifier.fillMaxWidth()) {
                 seriesList.forEach { series ->
-                    TvSeriesOverviewItem(series = series)
+                    TvSeriesOverviewItem(series = series, onClick = { onSeriesClick(series.id) })
                 }
             }
         }
@@ -403,43 +479,13 @@ fun TvSeriesListSection() {
 }
 
 @Composable
-fun TvSeriesOverviewItem(series: TvSeriesOverviewDto) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp)
-            .clickable { /* Brak akcji zgodnie z poleceniem */ }
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (series.posterPath != null) {
-                AsyncImage(
-                    model = "${WatchAppRepository.POSTERS_BASE_URL}${series.posterPath}",
-                    contentDescription = "Plakat ${series.name}",
-                    modifier = Modifier.size(width = 60.dp, height = 90.dp)
-                )
-            } else {
-                Box(modifier = Modifier.size(width = 60.dp, height = 90.dp), contentAlignment = Alignment.Center) {
-                    Text("Brak", fontSize = 10.sp, color = Color.Gray)
-                }
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(text = series.name, fontSize = 18.sp, fontWeight = FontWeight.Medium, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-        }
-    }
-}
-
-@Composable
-fun SearchSection() {
+fun SearchSection(
+    onMovieClick: (Int) -> Unit,
+    onSeriesClick: (Int) -> Unit
+) {
     val coroutineScope = rememberCoroutineScope()
     var searchQuery by remember { mutableStateOf("") }
-    var isSearchForMovies by remember { mutableStateOf(true) } // Nowy stan określający tryb wyszukiwania
+    var isSearchForMovies by remember { mutableStateOf(true) }
 
     var moviesList by remember { mutableStateOf<List<MovieOverviewDto>>(emptyList()) }
     var tvSeriesList by remember { mutableStateOf<List<TvSeriesOverviewDto>>(emptyList()) }
@@ -448,21 +494,14 @@ fun SearchSection() {
     var listLength by remember { mutableIntStateOf(0) }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        // --- PRZEŁĄCZNIK (Wybór pomiędzy filmem a serialem) ---
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             Button(
                 onClick = {
                     isSearchForMovies = true
-                    moviesList = emptyList() // Czyścimy wyniki przy zmianie trybu
+                    moviesList = emptyList()
                     tvSeriesList = emptyList()
                     listLength = 0
                     searchStatus = ""
@@ -471,13 +510,12 @@ fun SearchSection() {
                     containerColor = if (isSearchForMovies) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
                     contentColor = if (isSearchForMovies) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
                 )
-            ) {
-                Text("Filmy")
-            }
+            ) { Text("Filmy") }
+
             Button(
                 onClick = {
                     isSearchForMovies = false
-                    moviesList = emptyList() // Czyścimy wyniki przy zmianie trybu
+                    moviesList = emptyList()
                     tvSeriesList = emptyList()
                     listLength = 0
                     searchStatus = ""
@@ -486,14 +524,11 @@ fun SearchSection() {
                     containerColor = if (!isSearchForMovies) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
                     contentColor = if (!isSearchForMovies) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
                 )
-            ) {
-                Text("Seriale")
-            }
+            ) { Text("Seriale") }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- POLE WYSZUKIWANIA Z DYNAMICZNYM LAbelem ---
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
@@ -508,7 +543,6 @@ fun SearchSection() {
                 if (searchQuery.isNotBlank()) {
                     coroutineScope.launch {
                         searchStatus = "Wyszukiwanie..."
-
                         if (isSearchForMovies) {
                             val moviesPage = WatchAppRepository.Movies.searchForMovie(query = searchQuery, pageNumber = 1)
                             if (moviesPage != null && moviesPage.results.isNotEmpty()) {
@@ -520,7 +554,7 @@ fun SearchSection() {
                                 moviesList = emptyList()
                                 tvSeriesList = emptyList()
                                 listLength = 0
-                                searchStatus = "Brak wyników dla filmu: '$searchQuery'."
+                                searchStatus = "Brak wyników."
                             }
                         } else {
                             val tvSeriesPage = WatchAppRepository.TvSeries.searchForTvSeries(query = searchQuery, pageNumber = 1)
@@ -533,7 +567,7 @@ fun SearchSection() {
                                 tvSeriesList = emptyList()
                                 moviesList = emptyList()
                                 listLength = 0
-                                searchStatus = "Brak wyników dla serialu: '$searchQuery'."
+                                searchStatus = "Brak wyników."
                             }
                         }
                     }
@@ -542,36 +576,86 @@ fun SearchSection() {
                 }
             },
             modifier = Modifier.fillMaxWidth().height(50.dp)
-        ) {
-            Text("Szukaj", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-        }
+        ) { Text("Szukaj", fontSize = 16.sp, fontWeight = FontWeight.Bold) }
 
         Spacer(modifier = Modifier.height(8.dp))
-
-        if (searchStatus.isNotEmpty()) {
-            Text(text = searchStatus, color = Color.Gray, modifier = Modifier.padding(bottom = 4.dp))
-        }
+        if (searchStatus.isNotEmpty()) Text(text = searchStatus, color = Color.Gray, modifier = Modifier.padding(bottom = 4.dp))
 
         if (listLength > 0) {
-            Text(
-                text = "Ilość wyników wyszukiwania: $listLength",
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
+            Text(text = "Ilość wyników wyszukiwania: $listLength", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
             Column(modifier = Modifier.fillMaxWidth()) {
-                // Wyświetlanie właściwych kafelków w zależności od trybu
                 if (isSearchForMovies) {
-                    moviesList.forEach { movie ->
-                        MovieOverviewItem(movie = movie)
-                    }
+                    moviesList.forEach { movie -> MovieOverviewItem(movie = movie, onClick = { onMovieClick(movie.id) }) }
                 } else {
-                    tvSeriesList.forEach { series ->
-                        TvSeriesOverviewItem(series = series)
-                    }
+                    tvSeriesList.forEach { series -> TvSeriesOverviewItem(series = series, onClick = { onSeriesClick(series.id) }) }
                 }
             }
+        }
+    }
+}
+
+
+// ==========================================
+// KAFELKI POJEDYNCZE (ZOSTAŁY WZBOGACONE O ONCLICK)
+// ==========================================
+
+@Composable
+fun MovieOverviewItem(movie: MovieOverviewDto, onClick: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
+            // Używamy akcji onClick przekazanej z góry (z Section)
+            .clickable { onClick() }
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (movie.posterPath != null) {
+                AsyncImage(
+                    model = "${WatchAppRepository.POSTERS_BASE_URL}${movie.posterPath}",
+                    contentDescription = "Plakat ${movie.title}",
+                    modifier = Modifier.size(width = 60.dp, height = 90.dp)
+                )
+            } else {
+                Box(modifier = Modifier.size(width = 60.dp, height = 90.dp), contentAlignment = Alignment.Center) {
+                    Text("Brak", fontSize = 10.sp, color = Color.Gray)
+                }
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(text = movie.title, fontSize = 18.sp, fontWeight = FontWeight.Medium, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+fun TvSeriesOverviewItem(series: TvSeriesOverviewDto, onClick: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
+            .clickable { onClick() }
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (series.posterPath != null) {
+                AsyncImage(
+                    model = "${WatchAppRepository.POSTERS_BASE_URL}${series.posterPath}",
+                    contentDescription = "Plakat ${series.name}",
+                    modifier = Modifier.size(width = 60.dp, height = 90.dp)
+                )
+            } else {
+                Box(modifier = Modifier.size(width = 60.dp, height = 90.dp), contentAlignment = Alignment.Center) {
+                    Text("Brak", fontSize = 10.sp, color = Color.Gray)
+                }
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(text = series.name, fontSize = 18.sp, fontWeight = FontWeight.Medium, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
         }
     }
 }
@@ -581,187 +665,4 @@ enum class QueryMode(val displayName: String) {
     LIST("watchlist (JSON)"),
     POSTER("poster (image)"),
     HOMEPAGE_LIST("app's homepage movies (JSON)")
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-@Deprecated("Replaced with ApiTesterScreen")
-fun ApiTesterScreen() {
-    var endpointInput by remember { mutableStateOf("popular") }
-    var resultText by remember { mutableStateOf("result will appear here") }
-    var requestedUrl by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
-    var selectedMode by remember { mutableStateOf(QueryMode.MOVIE) }
-    var currentImageUrl by remember { mutableStateOf<String?>(null) }
-    val pageNumber = "1"
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            OutlinedTextField(
-                value = selectedMode.displayName,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("resource", fontSize = 18.sp) },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                textStyle = TextStyle(fontSize = 24.sp),
-                modifier = Modifier
-                    .menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true)
-                    .fillMaxWidth()
-                    .height(80.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = MaterialTheme.colorScheme.primary
-                )
-            )
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                QueryMode.entries.forEach { mode ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(mode.displayName, fontSize = 22.sp, modifier = Modifier.padding(vertical = 8.dp))
-                        },
-                        onClick = {
-                            selectedMode = mode
-                            expanded = false
-                            endpointInput = when (mode) {
-                                QueryMode.MOVIE -> "11"
-                                QueryMode.LIST -> "1"
-                                QueryMode.POSTER -> "/pWVLFh4OuejTpUaDQbB1C4zoS2p.jpg"
-                                QueryMode.HOMEPAGE_LIST -> "now_playing?page=$pageNumber"
-                            }
-                        }
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        OutlinedTextField(
-            value = endpointInput,
-            onValueChange = { endpointInput = it },
-            label = { Text("movie_id, poster_path or list_id", fontSize = 18.sp) },
-            textStyle = TextStyle(fontSize = 26.sp, fontWeight = FontWeight.Medium),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(85.dp),
-            singleLine = true
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Button(
-            onClick = {
-                requestedUrl = ""
-                currentImageUrl = null
-
-                // ZAKOMENTOWANE: Ze względu na usunięcie EndpointType i przebudowę komunikacji z API.
-                // Kiedy zaimplementujesz nowe podejście (np. bezpośrednie wołanie MovieApi w repozytorium),
-                // możesz tutaj wstrzyknąć nowe metody.
-                /*
-                resultText = "processing..."
-                val endpointType = when (selectedMode) {
-                    QueryMode.MOVIE -> EndpointType.MOVIE
-                    QueryMode.LIST -> EndpointType.LIST
-                    QueryMode.POSTER -> EndpointType.POSTER
-                    QueryMode.HOMEPAGE_LIST -> EndpointType.HOMEPAGE_LIST
-                }
-
-                coroutineScope.launch {
-                    val result = ApiManager.fetchApiData(endpointType, endpointInput)
-                    result.fold(
-                        onSuccess = { apiResult ->
-                            requestedUrl = apiResult.fullUrl
-                            if (apiResult.isImage) {
-                                currentImageUrl = apiResult.fullUrl
-                                resultText = ""
-                            } else {
-                                currentImageUrl = null
-                                resultText = apiResult.responseText
-                            }
-                        },
-                        onFailure = { error ->
-                            resultText = "ERROR:\n${error.localizedMessage}"
-                        }
-                    )
-                }
-                */
-
-                // TYMCZASOWE ZACHOWANIE:
-                resultText = "Testowanie API zostało wstrzymane (brak EndpointType). Zaktualizuj logikę zgodnie z nową architekturą."
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(75.dp),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
-        ) {
-            Text("test API call", fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 2.sp)
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-        HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.outlineVariant)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 24.dp)
-        ) {
-            if (requestedUrl.isNotEmpty()) {
-                Text(
-                    text = "destination url:",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-                Text(
-                    text = requestedUrl,
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-            }
-
-            if (currentImageUrl != null) {
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    AsyncImage(
-                        model = currentImageUrl,
-                        contentDescription = "recieved image",
-                        modifier = Modifier.wrapContentHeight()
-                    )
-                    AsyncImage(
-                        model = currentImageUrl,
-                        contentDescription = "recieved image",
-                        modifier = Modifier.wrapContentHeight()
-                    )
-                    AsyncImage(
-                        model = currentImageUrl,
-                        contentDescription = "recieved image",
-                        modifier = Modifier.wrapContentHeight()
-                    )
-                }
-            } else {
-                Text(
-                    text = resultText,
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 18.sp,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-    }
 }
