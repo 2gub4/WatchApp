@@ -37,11 +37,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                // Stan kontrolujący, który profil jest aktualnie otwarty
                 var selectedMovieId by remember { mutableStateOf<Int?>(null) }
                 var selectedSeriesId by remember { mutableStateOf<Int?>(null) }
-
-                // Przejmujemy systemowy przycisk "Wstecz" na telefonie, aby zamykał okno profilu
                 BackHandler(enabled = selectedMovieId != null || selectedSeriesId != null) {
                     selectedMovieId = null
                     selectedSeriesId = null
@@ -51,7 +48,6 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // Box pozwala nam nakładać widoki na siebie (jak warstwy w Photoshopie)
                     Box(modifier = Modifier.fillMaxSize()) {
 
                         // WARSTWA 1: Główna zawartość (Lista). Zawsze tu jest, więc pamięta pozycję scrolla!
