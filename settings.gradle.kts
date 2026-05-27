@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Backend Assembly"
+rootProject.name = "WatchApp"
 include(":app")
