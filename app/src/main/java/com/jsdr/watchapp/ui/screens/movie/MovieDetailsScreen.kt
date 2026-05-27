@@ -38,24 +38,24 @@ import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableIntStateOf
+
+//import androidx.compose.runtime.mutableStateListOf
+//import com.jsdr.watchapp.domain.models.profiles.MovieProfile
 
 @Composable
 fun MovieDetailsScreen(
-    movieName: String,
+    movieName: String, //Change to movieId and call getMovieProfile then apply profile to screen
     navController: NavController
 ) {
-
-    var mainRating by remember { mutableStateOf(0) }
-
-    var actorRating by remember { mutableStateOf(0) }
-    var musicRating by remember { mutableStateOf(0) }
-    var storyRating by remember { mutableStateOf(0) }
-
-    var reviewText by remember { mutableStateOf("") }
-
-    var showRatingsDialog by remember {
-        mutableStateOf(false)
-    }
+    var overallRating by remember { mutableIntStateOf(0) }
+    var characterRating by remember { mutableIntStateOf(0) }
+    var musicRating by remember { mutableIntStateOf(0) }
+    var plotRating by remember { mutableIntStateOf(0) }
+    var sfxRating by remember { mutableIntStateOf(0) }
+    var reviewContent by remember { mutableStateOf("") }
+    //val movieDetails = remember { mutableStateListOf<MovieProfile>() }
+    var showRatingsDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -64,37 +64,25 @@ fun MovieDetailsScreen(
             .verticalScroll(rememberScrollState())
             .padding(12.dp)
     ) {
-
-        // =====================
-        // GÓRA
-        // =====================
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
                 .border(2.dp, BrandPurple)
                 .padding(12.dp)
         ) {
-
             Text(
                 text = "←",
                 color = Color.White,
                 fontSize = 30.sp,
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .clickable {
-                        navController.popBackStack()
-                    }
+                    .clickable { navController.popBackStack() }
             )
-
             Row(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(top = 40.dp)
             ) {
-
-                // PLAKAT
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -103,33 +91,26 @@ fun MovieDetailsScreen(
                         .background(BrandPurple),
                     contentAlignment = Alignment.Center
                 ) {
-
+                    //change to async image and display it on top of the screen
+                    //AsyncImage() {}
                     Text(
                         text = "Plakat filmu",
                         color = Color.White,
                         fontSize = 22.sp
-                    )
+                    ) //placeholder
                 }
-
                 Spacer(modifier = Modifier.width(20.dp))
-
-                // PRZYCISKI
                 Column(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 )
                 {
-
-                    CircleMovieButton("❤️")
+                    CircleMovieButton("<3")
                     CircleMovieButton("⏰")
-                    CircleMovieButton("➕")
+                    //skreślone oko jako oznaczenie obejrzanego
+                    CircleMovieButton("+")
                 }
             }
         }
-
-        // =====================
-        // ŚRODEK
-        // =====================
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -137,42 +118,37 @@ fun MovieDetailsScreen(
                 .border(2.dp, BrandPurple)
                 .padding(20.dp)
         ) {
-
             Text(
-                text = "Tytuł",
+                text = "Tytuł: ", //tytuł z profilu
                 color = Color.White,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold
             )
-
             Spacer(modifier = Modifier.height(14.dp))
-
             Text(
-                text = "Opis filmu",
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 18.sp
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            Text(
-                text = "Data wydania",
+                text = "Synopsis:", //opis z profilu
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 18.sp
             )
             Spacer(modifier = Modifier.height(14.dp))
             Text(
-                text = "..",
+                text = "Premiera:", // data z profilu
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 18.sp
             )
-
+            Spacer(modifier = Modifier.height(14.dp))
+            Text(
+                text = "Obsada:", //obsada z profilu
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 16.sp
+            )
+            Spacer(modifier = Modifier.height(14.dp))
+            Text(
+                text = "Reżyser:", //reżyseria z profilu
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 16.sp
+            )
         }
-
-        // =====================
-        // DÓŁ
-        // =====================
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -180,47 +156,35 @@ fun MovieDetailsScreen(
                 .border(2.dp, BrandPurple)
                 .padding(20.dp)
         ) {
-
-            // GŁÓWNE GWIAZDKI
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
 
-                for (i in 1..5) {
-
+                for (i in 1..10 /*or 5*/) {
                     Text(
-                        text = if (i <= mainRating) "★" else "☆",
+                        text = if (i <= overallRating) "★" else "☆",
                         color = BrandPurple,
                         fontSize = 40.sp,
                         modifier = Modifier.clickable {
-                            mainRating = i
+                            overallRating = i
                             showRatingsDialog = true
                         }
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(24.dp))
-
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // OPINIA
             OutlinedTextField(
-                value = reviewText,
+                value = reviewContent,
                 onValueChange = {
-                    reviewText = it
+                    reviewContent = it
                 },
-
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(140.dp),
-
                 placeholder = {
                     Text("Napisz opinię...")
                 },
-
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = BrandPurple,
                     unfocusedBorderColor = BrandPurple,
@@ -228,40 +192,38 @@ fun MovieDetailsScreen(
                     unfocusedTextColor = Color.White,
                     cursorColor = BrandPurple
                 ),
-
                 shape = RoundedCornerShape(20.dp)
             )
         }
     }
     if (showRatingsDialog) {
-
         AlertDialog(
-
             onDismissRequest = {
                 showRatingsDialog = false
             },
-
             containerColor = DarkBackground,
-
             title = {
                 Text(
-                    text = "Dodatkowe oceny",
+                    text = "Aspekty filmu",
                     color = Color.White
                 )
             },
-
             text = {
-
                 Column {
-
                     RatingRow(
-                        title = "Aktorzy",
-                        rating = actorRating,
+                        title = "Fabuła",
+                        rating = plotRating,
                         onRatingChange = {
-                            actorRating = it
+                            plotRating = it
                         }
                     )
-
+                    RatingRow(
+                        title = "Bohaterowie",
+                        rating = characterRating,
+                        onRatingChange = {
+                            characterRating = it
+                        }
+                    )
                     RatingRow(
                         title = "Muzyka",
                         rating = musicRating,
@@ -269,25 +231,21 @@ fun MovieDetailsScreen(
                             musicRating = it
                         }
                     )
-
                     RatingRow(
-                        title = "Historia",
-                        rating = storyRating,
+                        title = "Efekty specjalne",
+                        rating = sfxRating,
                         onRatingChange = {
-                            storyRating = it
+                            sfxRating = it
                         }
                     )
                 }
             },
-
             confirmButton = {
-
                 TextButton(
                     onClick = {
                         showRatingsDialog = false
                     }
                 ) {
-
                     Text(
                         text = "Gotowe",
                         color = BrandPurple

@@ -19,16 +19,16 @@ fun CircleMovieButton(icon: String) {
 
     Box(
         modifier = Modifier
-            .size(58.dp)
+            .size(40.dp)
             .clip(CircleShape)
             .border(3.dp, BrandPurple, CircleShape)
-            .clickable { },
+            .clickable { /*WYWOŁANIE DODANIA DO POWIĄZANEJ LISTY*/ },
         contentAlignment = Alignment.Center
     ) {
-
         Text(
             text = icon,
-            fontSize = 30.sp
+            fontSize = 30.sp,
+            color = BrandPurple
         )
     }
 }

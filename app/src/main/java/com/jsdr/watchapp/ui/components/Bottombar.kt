@@ -44,17 +44,11 @@ fun WatchAppBottomBar(navController: NavController, currentRoute: String?) {
                     icon = screen.icon!!,
                     isSelected = isSelected,
                     onClick = {
-                        // 1. Jeśli jesteśmy w Ustawieniach, natychmiast je zdejmujemy ze stosu.
-                        // Dzięki temu nie "przykleją" się do zapisywanego stanu żadnej z zakładek.
                         if (currentRoute == Screen.Settings.route) {
                             navController.popBackStack(Screen.Settings.route, inclusive = true)
                         }
-
-                        // 2. Przechodzimy do wybranej zakładki
                         navController.navigate(screen.route) {
-                            popUpTo(Screen.Home.route) {
-                                saveState = true
-                            }
+                            popUpTo(Screen.Home.route) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
                         }
