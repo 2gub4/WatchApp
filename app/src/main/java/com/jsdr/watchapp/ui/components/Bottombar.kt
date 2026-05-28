@@ -44,13 +44,11 @@ fun WatchAppBottomBar(navController: NavController, currentRoute: String?) {
                     icon = screen.icon!!,
                     isSelected = isSelected,
                     onClick = {
-                        if (currentRoute == Screen.Settings.route) {
-                            navController.popBackStack(Screen.Settings.route, inclusive = true)
-                        }
                         navController.navigate(screen.route) {
-                            popUpTo(Screen.Home.route) { saveState = true }
+                            popUpTo(navController.graph.startDestinationId) {
+                                inclusive = false
+                            }
                             launchSingleTop = true
-                            restoreState = true
                         }
                     }
                 )

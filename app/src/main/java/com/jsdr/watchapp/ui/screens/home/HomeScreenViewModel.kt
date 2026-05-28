@@ -12,9 +12,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-// 1. Zdefiniowanie jedynego, spójnego stanu dla ekranu
-data class HomeUiState(
-    val currentUser: String = CURRENT_USER, 
+data class HomeViewState(
+    val currentUser: String = CURRENT_USER,
     val language: String = "pl-PL",
     val isMoviesSelected: Boolean = true, // true - movie, false - tv series
     val pageNumber: Int = 1,
@@ -27,18 +26,18 @@ data class HomeUiState(
 
 class HomeViewModel : ViewModel() {
 
-    private val _uiState = MutableStateFlow(HomeUiState())
-    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+    private val _viewState = MutableStateFlow(HomeViewState())
+    val viewState: StateFlow<HomeViewState> = _viewState.asStateFlow()
 
     init { loadInitialData() }
 
     private fun loadInitialData() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoadingFirstPage = true, error = null) }
-            val state = _uiState.value
+            _viewState.update { it.copy(isLoadingFirstPage = true, error = null) }
+            val state = _viewState.value
             try {
                 val newItems = fetchMediaPage(isMovies = state.isMoviesSelected, pageNumber = 1)
-                _uiState.update {
+                _viewState.update {
                     it.copy(
                         mediaList = newItems,
                         pageNumber = 1,
@@ -46,20 +45,20 @@ class HomeViewModel : ViewModel() {
                     )
                 }
             } catch (_: Exception) {
-                _uiState.update { it.copy(isLoadingFirstPage = false, error = "data fetching error") }
+                _viewState.update { it.copy(isLoadingFirstPage = false, error = "data fetching error") }
             }
         }
     }
-    
+
     fun loadNextPage() {
-        val state = _uiState.value
+        val state = _viewState.value
         if (state.isLoadingNextPage || state.isLoadingFirstPage) return
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoadingNextPage = true) }
+            _viewState.update { it.copy(isLoadingNextPage = true) }
             val nextPage = state.pageNumber + 1
             try {
                 val newItems = fetchMediaPage(isMovies = state.isMoviesSelected, pageNumber = nextPage)
-                _uiState.update {
+                _viewState.update {
                     it.copy(
                         mediaList = it.mediaList + newItems,
                         pageNumber = nextPage,
@@ -67,14 +66,14 @@ class HomeViewModel : ViewModel() {
                     )
                 }
             } catch (_: Exception) {
-                _uiState.update { it.copy(isLoadingNextPage = false, error = "unable to load more data") }
+                _viewState.update { it.copy(isLoadingNextPage = false, error = "unable to load more data") }
             }
         }
     }
-    
+
     fun toggleMediaType(showMovies: Boolean) {
-        if (_uiState.value.isMoviesSelected == showMovies) return
-        _uiState.update {
+        if (_viewState.value.isMoviesSelected == showMovies) return
+        _viewState.update {
             it.copy(
                 isMoviesSelected = showMovies,
                 pageNumber = 1,
@@ -84,7 +83,7 @@ class HomeViewModel : ViewModel() {
         }
         loadInitialData()
     }
-    
+
     private suspend fun fetchMediaPage(isMovies: Boolean, pageNumber: Int): List<MediaOverview> {
         return if (isMovies) {
             val response = WatchAppRepository.Movies.getMoviePage(pageNumber = pageNumber, listType = "popular")
@@ -96,10 +95,10 @@ class HomeViewModel : ViewModel() {
     }
 
     fun openProfile(id: Int) {
-        _uiState.update { it.copy(selectedMediaId = id) }
+        _viewState.update { it.copy(selectedMediaId = id) }
     }
 
     fun closeProfile() {
-        _uiState.update { it.copy(selectedMediaId = null) }
+        _viewState.update { it.copy(selectedMediaId = null) }
     }
 }

@@ -1,4 +1,4 @@
-package com.jsdr.watchapp.ui.screens.movie
+package com.jsdr.watchapp.ui.screens.media
 import com.jsdr.watchapp.ui.components.CircleMovieButton
 import com.jsdr.watchapp.ui.components.RatingRow
 import androidx.compose.foundation.background
@@ -44,8 +44,11 @@ import androidx.compose.runtime.mutableIntStateOf
 //import com.jsdr.watchapp.domain.models.profiles.MovieProfile
 
 @Composable
-fun MovieDetailsScreen(
-    movieName: String, //Change to movieId and call getMovieProfile then apply profile to screen
+fun MediaDetailsScreen(
+    //media:
+    movieId: Int, //Change to movieId and call getMovieProfile then apply profile to screen
+
+    mediaType: String = "movie", // "tv_series"
     navController: NavController
 ) {
     var overallRating by remember { mutableIntStateOf(0) }
@@ -119,7 +122,7 @@ fun MovieDetailsScreen(
                 .padding(20.dp)
         ) {
             Text(
-                text = "Tytuł: ", //tytuł z profilu
+                text = "Tytuł: $movieId", //tytuł z profilu
                 color = Color.White,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold

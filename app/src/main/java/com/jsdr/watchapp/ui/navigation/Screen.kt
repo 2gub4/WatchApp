@@ -24,10 +24,10 @@ sealed class Screen(val route: String, val icon: ImageVector?) {
             return "list_details/$listName/$listDescription"
         }
     }
-    object MovieDetails : Screen("movie_details/{movieName}", null) {
+    object MovieDetails : Screen("media_details/{movieId}", null) {
 
-        fun createRoute(movieName: String): String {
-            return "movie_details/$movieName"
+        fun createRoute(movieId: Int): String {
+            return "media_details/$movieId"
         }
     }
 }

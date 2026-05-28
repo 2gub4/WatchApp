@@ -13,7 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+//import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -30,7 +30,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = viewModel()
 ) {
     val gridState = rememberLazyGridState()
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.viewState.collectAsState()
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -83,7 +83,7 @@ fun HomeScreen(
                             media = media,
                             onClick = {
                                 navController.navigate(
-                                    Screen.MovieDetails.createRoute(media.id.toString())
+                                    Screen.MovieDetails.createRoute(media.id)
                                 )
                             },
                             modifier = Modifier.aspectRatio(0.6f)

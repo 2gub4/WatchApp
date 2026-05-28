@@ -45,16 +45,17 @@ fun MediaTile(
         if (media.posterPath != null) {
             AsyncImage(
                 model = "${WatchAppRepository.POSTERS_BASE_URL}${media.posterPath}",
-                contentDescription = "Plakat ${media.displayTitle}",
-                contentScale = ContentScale.Inside,
-                //contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                contentDescription = "Plakat ${media.title}",
+                //contentScale = ContentScale.Inside,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
             )
             // TU DODAĆ TYTUŁ NA ZACIENIONYM TLE POD PLAKATEM
-            Text(text = media.displayTitle, color = Color.White, fontSize = 14.sp, textAlign = TextAlign.Justify, modifier = Modifier.padding(8.dp))
+            //Text(text = media.title, color = Color.White, fontSize = 14.sp, textAlign = TextAlign.Justify, modifier = Modifier.padding(8.dp))
         } else {
             Text(
-                text = media.displayTitle,
+                text = media.title,
                 color = Color.White,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,

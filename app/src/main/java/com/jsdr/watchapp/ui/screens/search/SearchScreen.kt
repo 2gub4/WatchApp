@@ -108,7 +108,7 @@ fun SearchScreen(
 
             items(filteredMovies.size) { index ->
 
-                val movie = filteredMovies[index]
+                val movie = filteredMovies[index].length * 123 + index
 
                 Box(
                     modifier = Modifier
@@ -127,7 +127,7 @@ fun SearchScreen(
                     Column {
 
                         Text(
-                            text = movie,
+                            text = movie.toString(),
                             color = Color.White,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold

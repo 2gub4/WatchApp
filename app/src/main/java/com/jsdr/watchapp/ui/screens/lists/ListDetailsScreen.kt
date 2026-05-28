@@ -95,7 +95,7 @@ fun ListDetailsScreen(
 
                         navController.navigate(
                             Screen.MovieDetails.createRoute(
-                                "Film ${index + 1}"
+                                1234567 + index
                             )
                         )
                     }

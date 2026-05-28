@@ -20,6 +20,14 @@ const val CURRENT_USER: String = "test_user"
 object WatchAppRepository {
     const val POSTERS_BASE_URL = "https://image.tmdb.org/t/p/w500"
 
+    suspend fun getMediaProfile(mediaId: Int, mediaType: Boolean /*true - movie, false - tv series*/) {
+        if (mediaType) {
+            Movies.getMovieProfile(mediaId)
+        } else {
+            TvSeries.getTvSeriesProfile(mediaId)
+        }
+    }
+
     object Movies {
 
         suspend fun getApiMovieDetails(movieId: Int): MovieDetailsDto? {
