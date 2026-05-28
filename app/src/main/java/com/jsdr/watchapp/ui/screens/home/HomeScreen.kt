@@ -83,7 +83,10 @@ fun HomeScreen(
                             media = media,
                             onClick = {
                                 navController.navigate(
-                                    Screen.MovieDetails.createRoute(media.id)
+                                    Screen.MovieDetails.createRoute(
+                                        media.id,
+                                        media.isMovie
+                                        )
                                 )
                             },
                             modifier = Modifier.aspectRatio(0.6f)

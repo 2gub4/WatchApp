@@ -1,4 +1,4 @@
-package com.jsdr.watchapp.ui.screens.profile
+package com.jsdr.watchapp.ui.screens.user_profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,12 +28,9 @@ fun StatisticsScreen(
             .background(DarkBackground)
             .padding(20.dp)
     ) {
-
-
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Text(
                 text = "←",
                 color = BrandPurple,
@@ -45,7 +42,6 @@ fun StatisticsScreen(
                     }
                     .padding(end = 16.dp)
             )
-
             Text(
                 text = "Statystyki",
                 color = Color.White,
@@ -53,31 +49,22 @@ fun StatisticsScreen(
                 fontWeight = FontWeight.Bold
             )
         }
-
         Spacer(modifier = Modifier.height(40.dp))
-
-
         StatisticCard(
             title = "Obejrzane filmy",
             value = "0"
         )
-
         Spacer(modifier = Modifier.height(20.dp))
-
         StatisticCard(
             title = "Obejrzane seriale",
             value = "0"
         )
-
         Spacer(modifier = Modifier.height(20.dp))
-
         StatisticCard(
             title = "Polubione",
             value = "0"
         )
-
         Spacer(modifier = Modifier.height(20.dp))
-
         StatisticCard(
             title = "Wystawione oceny",
             value = "0"

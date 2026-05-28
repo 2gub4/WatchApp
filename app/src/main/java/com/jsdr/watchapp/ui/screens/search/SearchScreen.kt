@@ -118,7 +118,7 @@ fun SearchScreen(
                         .clickable {
 
                             navController.navigate(
-                                Screen.MovieDetails.createRoute(movie)
+                                Screen.MovieDetails.createRoute(movie, true)
                             )
                         }
                         .padding(16.dp)

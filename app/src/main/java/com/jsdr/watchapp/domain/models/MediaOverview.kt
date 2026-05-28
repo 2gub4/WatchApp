@@ -13,7 +13,7 @@ data class MediaOverview(
     val id: Int,
     val title: String,
     val posterPath: String?,
-    val isTvSeries: Boolean
+    val isMovie: Boolean
 )
 
 fun MovieOverviewDto.toDomain(): MediaOverview {
@@ -21,7 +21,7 @@ fun MovieOverviewDto.toDomain(): MediaOverview {
         id = this.id,
         title = this.title,
         posterPath = this.posterPath,
-        isTvSeries = false
+        isMovie = true
     )
 }
 
@@ -30,6 +30,6 @@ fun TvSeriesOverviewDto.toDomain(): MediaOverview {
         id = this.id,
         title = this.name,
         posterPath = this.posterPath,
-        isTvSeries = true
+        isMovie = false
     )
 }

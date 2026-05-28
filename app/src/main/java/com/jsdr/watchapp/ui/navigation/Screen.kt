@@ -24,10 +24,9 @@ sealed class Screen(val route: String, val icon: ImageVector?) {
             return "list_details/$listName/$listDescription"
         }
     }
-    object MovieDetails : Screen("media_details/{movieId}", null) {
-
-        fun createRoute(movieId: Int): String {
-            return "media_details/$movieId"
+    object MovieDetails : Screen("media_details/{movieId}/{isMovie}", null) {
+        fun createRoute(movieId: Int, isMovie: Boolean): String {
+            return "media_details/$movieId/$isMovie"
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.jsdr.watchapp
 import com.jsdr.watchapp.ui.navigation.Screen
-import com.jsdr.watchapp.ui.screens.profile.ProfileScreen
-import com.jsdr.watchapp.ui.screens.profile.StatisticsScreen
+import com.jsdr.watchapp.ui.screens.user_profile.ProfileScreen
+import com.jsdr.watchapp.ui.screens.user_profile.StatisticsScreen
 import com.jsdr.watchapp.ui.components.WatchAppTopBar
 import com.jsdr.watchapp.ui.components.WatchAppBottomBar
 import com.jsdr.watchapp.data.models.entities.UserList
@@ -58,10 +58,7 @@ fun WatchApp() {
         containerColor = DarkBackground,
 
         topBar = {
-
-            // Ukrywamy topbar na ekranie filmu
             if (currentRoute != Screen.MovieDetails.route) {
-
                 WatchAppTopBar(
                     navController = navController,
                     currentRoute = currentRoute
@@ -115,10 +112,11 @@ fun WatchApp() {
                 )
             }
             composable(Screen.MovieDetails.route) { backStackEntry ->
-                val movieId =
-                    backStackEntry.arguments?.getString("movieId") ?: "Film"
+                val mediaId = backStackEntry.arguments?.getString("movieId")?.toIntOrNull() ?: 0
+                val isMovie = backStackEntry.arguments?.getString("isMovie")?.toBoolean() ?: true
                 MediaDetailsScreen(
-                    movieId = movieId.toInt(),
+                    mediaId = mediaId,
+                    isMovie = isMovie,
                     navController = navController
                 )
             }

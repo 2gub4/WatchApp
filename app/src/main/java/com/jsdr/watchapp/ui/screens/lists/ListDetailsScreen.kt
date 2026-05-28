@@ -95,7 +95,8 @@ fun ListDetailsScreen(
 
                         navController.navigate(
                             Screen.MovieDetails.createRoute(
-                                1234567 + index
+                                1234567 + index,
+                                true
                             )
                         )
                     }
