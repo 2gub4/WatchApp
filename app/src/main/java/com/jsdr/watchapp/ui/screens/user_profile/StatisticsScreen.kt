@@ -1,4 +1,4 @@
-package com.jsdr.watchapp.ui.screens.profile
+package com.jsdr.watchapp.ui.screens.user_profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,8 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.jsdr.watchapp.BrandPurple
-import com.jsdr.watchapp.DarkBackground
+
 
 @Composable
 fun StatisticsScreen(

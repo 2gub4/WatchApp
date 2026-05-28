@@ -1,7 +1,7 @@
 package com.jsdr.watchapp
 import com.jsdr.watchapp.ui.navigation.Screen
-import com.jsdr.watchapp.ui.screens.profile.ProfileScreen
-import com.jsdr.watchapp.ui.screens.profile.StatisticsScreen
+import com.jsdr.watchapp.ui.screens.user_profile.ProfileScreen
+import com.jsdr.watchapp.ui.screens.user_profile.StatisticsScreen
 import com.jsdr.watchapp.ui.components.WatchAppTopBar
 import com.jsdr.watchapp.ui.components.WatchAppBottomBar
 import com.jsdr.watchapp.data.models.entities.UserList
