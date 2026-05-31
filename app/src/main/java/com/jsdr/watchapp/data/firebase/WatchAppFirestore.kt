@@ -77,7 +77,42 @@ object WatchAppFirestore {
 //    }
 
     object Users {
-        
+
+        suspend fun addUser(user: User) {
+            firestoreDb.collection("users")
+                .document(user.uid)
+                .set(user)
+                .await()
+        }
+
+        suspend fun deleteUser(userId: String) {
+            try {
+                firestoreDb.collection("users").document(userId).delete().await()
+            } catch (e: Exception) { Log.e("WatchAppFirestore", "Could not delete user", e) }
+        }
+
+        suspend fun getUserStats(userId: String): Map<String, Int> {
+            return try {
+                val snap = firestoreDb.collection("users")
+                    .document(userId)
+                    .get()
+                    .await()
+                val watchedMovies = snap.get("watchedMoviesCount") as? Int ?: 0
+                val watchedTvSeries = snap.get("watchedTvSeriesCount") as? Int ?: 0
+                val favourites = snap.get("favouritesCount") as? Int ?: 0
+                val ratings = snap.get("ratingsCount") as? Int ?: 0
+                mapOf(
+                    "watchedMovies" to watchedMovies,
+                    "watchedSeries" to watchedTvSeries,
+                    "totalFavourites" to favourites,
+                    "totalRatings" to ratings
+                )
+            } catch (e: Exception) {
+                Log.e("Movie Firestore", "Could not get movies watched by user: $userId", e)
+                emptyMap()
+            }
+        }
+
         suspend fun getUserLists(userId: String): List<UserList> {
             return try {
                 val snapshot = firestoreDb.collection("users")
@@ -106,43 +141,39 @@ object WatchAppFirestore {
             }
         }
 
-        suspend fun getUserStats(userId: String): Map<String, Int> {
-            return try {
-                val snap = firestoreDb.collection("users")
+        object Updates {
+            suspend fun updateUsername(userId: String, username: String) {
+                firestoreDb.collection("users")
                     .document(userId)
-                    .get()
+                    .update("username", username)
                     .await()
-                val watchedMovies = snap.get("watchedMoviesCount") as? Int ?: 0
-                val watchedTvSeries = snap.get("watchedTvSeriesCount") as? Int ?: 0
-                val favourites = snap.get("favouritesCount") as? Int ?: 0
-                val ratings = snap.get("ratingsCount") as? Int ?: 0
-                mapOf(
-                    "watchedMovies" to watchedMovies,
-                    "watchedSeries" to watchedTvSeries,
-                    "totalFavourites" to favourites,
-                    "totalRatings" to ratings
-                )
-            } catch (e: Exception) {
-                Log.e("Movie Firestore", "Could not get movies watched by user: $userId", e)
-                emptyMap()
+            }
+
+            suspend fun updateGender(userId: String, gender: String) {
+                if (gender == "male" || gender == "female") {
+                    firestoreDb.collection("users")
+                        .document(userId)
+                        .update("gender", gender)
+                        .await()
+                }
+                return
+            }
+
+            suspend fun updateBirthYear(userId: String, year: Int) {
+                firestoreDb.collection("users")
+                    .document(userId)
+                    .update("birthYear", year)
+                    .await()
+            }
+
+            suspend fun updateEmail(userId: String, email: String) {
+                firestoreDb.collection("users")
+                    .document(userId)
+                    .update("email", email)
+                    .await()
             }
         }
 
-
-
-        suspend fun addUser(user: User) {
-            firestoreDb.collection("users")
-                .document(user.uid)
-                .set(user)
-                .await()
-        }
-
-        suspend fun deleteUser(userId: String) {
-            try {
-                firestoreDb.collection("users").document(userId).delete().await()
-            } catch (e: Exception) { Log.e("WatchAppFirestore", "Could not delete user", e) }
-        }
-        
     }
 
     object Lists {
