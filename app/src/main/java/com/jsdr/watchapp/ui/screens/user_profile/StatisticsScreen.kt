@@ -17,6 +17,7 @@ import androidx.navigation.NavController
 import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
 
+
 @Composable
 fun StatisticsScreen(
     navController: NavController

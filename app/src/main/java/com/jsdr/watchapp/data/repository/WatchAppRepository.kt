@@ -28,6 +28,12 @@ object WatchAppRepository {
         }
     }
 
+    object User {
+        suspend fun getUserStats() {
+            MovieFirestore.Users.getUserStats(CURRENT_USER)
+        }
+    }
+
     object Movies {
 
         suspend fun getApiMovieDetails(movieId: Int): MovieDetailsDto? {

@@ -1,4 +1,5 @@
 package com.jsdr.watchapp.ui.screens.user_profile
+
 import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
 import com.jsdr.watchapp.ui.navigation.Screen
