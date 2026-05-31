@@ -90,7 +90,7 @@ fun MediaDetailsScreen(
         else -> ""
     }
     val creatorLabel = when (val state = uiState) {
-        is MediaDetailsUiState.MovieSuccess -> "Reżyser: ${state.profile.getDirector()?.name ?: "Brak"}"
+        is MediaDetailsUiState.MovieSuccess -> "Reżyser: ${state.profile.getDirector().name}"
         is MediaDetailsUiState.TvSuccess -> "Twórca: ${state.profile.seriesDetails.createdBy.firstOrNull()?.name ?: "Brak"}"
         else -> "Reżyser:"
     }

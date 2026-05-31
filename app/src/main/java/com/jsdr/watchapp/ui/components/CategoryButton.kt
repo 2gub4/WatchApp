@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.jsdr.watchapp.BrandPurple
 
 @Composable
 fun CategoryButton(
@@ -23,7 +24,7 @@ fun CategoryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
+    val backgroundColor = if (isSelected) BrandPurple else Color.Transparent
     val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else Color.White
     val borderColor = if (isSelected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant
 

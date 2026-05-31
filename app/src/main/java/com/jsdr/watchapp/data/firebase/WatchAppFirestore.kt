@@ -9,56 +9,56 @@ import com.jsdr.watchapp.data.models.entities.User
 import com.jsdr.watchapp.data.models.entities.UserList
 import kotlinx.coroutines.tasks.await
 
-val testUsr = User(
-    uid = "test_user",
-    email = "test@example.com",
-    username = "test_user_123",
-    pfpPath = "pfp.png",
-    watchedMoviesCount = 0,
-    watchedTvSeriesCount = 0,
-    favouritesCount = 0,
-    ratingsCount = 0
-)
+//val testUsr = User(
+//    uid = "test_user",
+//    email = "test@example.com",
+//    username = "test_user_123",
+//    pfpPath = "pfp.png",
+//    watchedMoviesCount = 0,
+//    watchedTvSeriesCount = 0,
+//    favouritesCount = 0,
+//    ratingsCount = 0
+//)
+//
+//val favouritesTemplate = UserList(
+//    name = "Ulubione",
+//    description = "Filmy i seriale, które wyjątkowo doceniłeś",
+//    movies = emptyList(),
+//    series = emptyList()
+//)
+//
+//val bucketlistTemplate = UserList(
+//    name = "Kupka Wstydu",
+//    description = "Filmy i seriale, które już dawno powinieneś był obejrzeć",
+//    movies = emptyList(),
+//    series = emptyList()
+//)
+//
+//val watchedTemplate = UserList(
+//    name = "Obejrzane",
+//    description = "Filmy i seriale, które już obejrzałeś",
+//    movies = emptyList(),
+//    series = emptyList()
+//)
+//
+//val customListTest = UserList(
+//    name = "Guilty Pleasures",
+//    description = "Słabe produkcje, dobra zabawa",
+//    movies = listOf(1022690),
+//    series = listOf()
+//)
+//
+//val ratingTest = Rating(
+//    "11",
+//    7.0,
+//    7.0,
+//    8.0,
+//    5.0,
+//    7.0
+//)
 
-val favouritesTemplate = UserList(
-    name = "Ulubione",
-    description = "Filmy i seriale, które wyjątkowo doceniłeś",
-    movies = emptyList(),
-    series = emptyList()
-)
 
-val bucketlistTemplate = UserList(
-    name = "Kupka Wstydu",
-    description = "Filmy i seriale, które już dawno powinieneś był obejrzeć",
-    movies = emptyList(),
-    series = emptyList()
-)
-
-val watchedTemplate = UserList(
-    name = "Obejrzane",
-    description = "Filmy i seriale, które już obejrzałeś",
-    movies = emptyList(),
-    series = emptyList()
-)
-
-val customListTest = UserList(
-    name = "Guilty Pleasures",
-    description = "Słabe produkcje, dobra zabawa",
-    movies = listOf(1022690),
-    series = listOf()
-)
-
-val ratingTest = Rating(
-    "11",
-    7.0,
-    7.0,
-    8.0,
-    5.0,
-    7.0
-)
-
-
-object MovieFirestore {
+object WatchAppFirestore {
     val firestoreDb by lazy { Firebase.firestore }
 
 //    suspend fun initialSeeding() {
@@ -78,7 +78,7 @@ object MovieFirestore {
 
     object Users {
         
-        suspend fun getCurrentUserLists(userId: String): List<UserList> {
+        suspend fun getUserLists(userId: String): List<UserList> {
             return try {
                 val snapshot = firestoreDb.collection("users")
                     .document(userId)
@@ -106,18 +106,35 @@ object MovieFirestore {
             }
         }
 
-//        suspend fun getUsersWatchedMedia(userId: String): List<Int> {
-//            return try {
-//                //
-//            } catch (e: Exception) {
-//                Log.e("Movie Firestore", "Could not get movies watched by user: $userId", e)
-//                emptyList()
-//            }
-//        }
+        suspend fun getUserStats(userId: String): Map<String, Int> {
+            return try {
+                val snap = firestoreDb.collection("users")
+                    .document(userId)
+                    .get()
+                    .await()
+                val watchedMovies = snap.get("watchedMoviesCount") as? Int ?: 0
+                val watchedTvSeries = snap.get("watchedTvSeriesCount") as? Int ?: 0
+                val favourites = snap.get("favouritesCount") as? Int ?: 0
+                val ratings = snap.get("ratingsCount") as? Int ?: 0
+                mapOf(
+                    "watchedMovies" to watchedMovies,
+                    "watchedSeries" to watchedTvSeries,
+                    "totalFavourites" to favourites,
+                    "totalRatings" to ratings
+                )
+            } catch (e: Exception) {
+                Log.e("Movie Firestore", "Could not get movies watched by user: $userId", e)
+                emptyMap()
+            }
+        }
 
-        suspend fun addUser(userId: String) {
-            firestoreDb.collection("users").add(userId)
-            // maybe requires more data to insert like default values or whole user instance as a pattern
+
+
+        suspend fun addUser(user: User) {
+            firestoreDb.collection("users")
+                .document(user.uid)
+                .set(user)
+                .await()
         }
 
         suspend fun deleteUser(userId: String) {
@@ -158,7 +175,7 @@ object MovieFirestore {
                     .delete()
                     .await()
             } catch (e: Exception) {
-                Log.e("WatchAppFirestore", "Could not delete user list", e)
+                Log.e("WatchApp Firestore", "Could not delete user list", e)
             }
         }
 
@@ -324,7 +341,7 @@ object MovieFirestore {
             }
         }
 
-        suspend fun removeMovieFromList(userId: String, listId: String, movieId: Int) {
+        fun removeMovieFromList(userId: String, listId: String, movieId: Int) {
             try {
                 firestoreDb.collection("users")
                     .document(userId)

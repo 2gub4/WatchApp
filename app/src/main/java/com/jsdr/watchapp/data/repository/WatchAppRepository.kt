@@ -3,7 +3,7 @@ package com.jsdr.watchapp.data.repository
 import android.util.Log
 import com.jsdr.watchapp.data.api.TmdbApiResult
 import com.jsdr.watchapp.data.api.TmdbApi
-import com.jsdr.watchapp.data.firebase.MovieFirestore
+import com.jsdr.watchapp.data.firebase.WatchAppFirestore
 import com.jsdr.watchapp.domain.models.profiles.MovieProfile
 import com.jsdr.watchapp.data.models.dtos.movies.MovieDetailsDto
 import com.jsdr.watchapp.data.models.dtos.movies.MoviesPageDto
@@ -15,6 +15,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 
 const val CURRENT_USER: String = "test_user"
+//private val currentUserId: String = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
 
 object WatchAppRepository {
@@ -29,8 +30,11 @@ object WatchAppRepository {
     }
 
     object User {
-        suspend fun getUserStats() {
-            MovieFirestore.Users.getUserStats(CURRENT_USER)
+        suspend fun getUserStats(): Map<String, Int> {
+            return withContext(Dispatchers.IO) {
+                val stats = async { WatchAppFirestore.Users.getUserStats(CURRENT_USER) }
+                stats.await()
+            }
         }
     }
 
@@ -49,8 +53,8 @@ object WatchAppRepository {
         suspend fun getMovieProfile(movieId: Int): MovieProfile? {
             return withContext(Dispatchers.IO) {
                 val apiMovieDetails = async { getApiMovieDetails(movieId) }
-                val potentialUserRating = async { MovieFirestore.Ratings.getMovieRating(CURRENT_USER, movieId.toString()) }
-                val containingLists = async { MovieFirestore.Lists.getListsContainingMovie(CURRENT_USER, movieId.toString()) }
+                val potentialUserRating = async { WatchAppFirestore.Ratings.getMovieRating(CURRENT_USER, movieId.toString()) }
+                val containingLists = async { WatchAppFirestore.Lists.getListsContainingMovie(CURRENT_USER, movieId.toString()) }
                 val details = apiMovieDetails.await() ?: return@withContext null
                 MovieProfile(
                     movieDetails = details,
@@ -99,8 +103,8 @@ object WatchAppRepository {
         suspend fun getTvSeriesProfile(seriesId: Int): TvSeriesProfile? {
             return withContext(Dispatchers.IO) {
                 val apiTvSeriesDetails = async { getApiTvSeriesDetails(seriesId) }
-                val potentialUserRating = async { MovieFirestore.Ratings.getMovieRating(CURRENT_USER, seriesId.toString()) }
-                val containingLists = async { MovieFirestore.Lists.getListsContainingMovie(CURRENT_USER, seriesId.toString()) }
+                val potentialUserRating = async { WatchAppFirestore.Ratings.getMovieRating(CURRENT_USER, seriesId.toString()) }
+                val containingLists = async { WatchAppFirestore.Lists.getListsContainingMovie(CURRENT_USER, seriesId.toString()) }
                 val details = apiTvSeriesDetails.await() ?: return@withContext null
                 TvSeriesProfile(
                     seriesDetails = details,

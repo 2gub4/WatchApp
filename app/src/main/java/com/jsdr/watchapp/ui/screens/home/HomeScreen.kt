@@ -69,8 +69,8 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(end = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                     contentPadding = PaddingValues(bottom = 20.dp)
                 ) {
                     itemsIndexed(state.mediaList) { index, media ->
@@ -86,7 +86,7 @@ fun HomeScreen(
                                     Screen.MovieDetails.createRoute(
                                         media.id,
                                         media.isMovie
-                                        )
+                                    )
                                 )
                             },
                             modifier = Modifier.aspectRatio(0.6f)

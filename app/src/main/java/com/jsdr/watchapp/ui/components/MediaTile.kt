@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import coil.compose.AsyncImage
+import com.jsdr.watchapp.DarkBackground
 import com.jsdr.watchapp.data.repository.WatchAppRepository
 import com.jsdr.watchapp.domain.models.MediaOverview
 
@@ -30,13 +31,13 @@ fun MediaTile(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(20.dp))
             .border(
-                width = 3.dp,
+                width = 2.dp,
                 color = BrandPurple,
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(20.dp)
             )
-            .background(Color(0xFF212121))
+            .background(DarkBackground)
             .clickable {
                 onClick()
             },
