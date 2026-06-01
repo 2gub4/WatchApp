@@ -294,9 +294,7 @@ fun MediaDetailsScreen(
     }
     if (showRatingsDialog) {
         AlertDialog(
-            onDismissRequest = {
-                showRatingsDialog = false
-            },
+            onDismissRequest = {},
             containerColor = DarkBackground,
             title = {
                 Text(
@@ -338,9 +336,7 @@ fun MediaDetailsScreen(
             },
             confirmButton = {
                 TextButton(
-                    onClick = {
-                        showRatingsDialog = false
-                    }
+                    onClick = {}
                 ) {
                     Text(
                         text = "Gotowe",
