@@ -78,6 +78,19 @@ object WatchAppFirestore {
 
     object Users {
 
+        suspend fun getCurrentUser(userId: String): User? {
+            return try {
+                val snap = firestoreDb.collection("users")
+                    .document(userId)
+                    .get()
+                    .await()
+                snap.toObject(User::class.java)
+            } catch (_: Exception) {
+                Log.e("WatchApp Firestore", "Could not get current user data")
+                null
+            }
+        }
+
         suspend fun addUser(user: User) {
             firestoreDb.collection("users")
                 .document(user.uid)

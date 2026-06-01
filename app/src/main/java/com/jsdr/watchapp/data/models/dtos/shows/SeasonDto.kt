@@ -9,6 +9,6 @@ data class SeasonDto(
     @SerialName("name") val name: String,
     @SerialName("overview") val overview: String,
     @SerialName("poster_path") val posterPath: String? = null,
-    @SerialName("air_date") val airDate: String,
+    @SerialName("air_date") val airDate: String? = null,
     @SerialName("episode_count") val episodeCount: Int,
 )

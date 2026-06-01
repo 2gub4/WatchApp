@@ -45,14 +45,14 @@ fun HomeScreen(
             ) {
                 CategoryButton(
                     title = "Filmy",
-                    isSelected = state.isMoviesSelected,
+                    isSelected = state.areMoviesSelected,
                     onClick = {
                         viewModel.toggleMediaType(showMovies = true)
                     },
                 )
                 CategoryButton(
                     title = "Seriale",
-                    isSelected = !state.isMoviesSelected,
+                    isSelected = !state.areMoviesSelected,
                     onClick = {
                         viewModel.toggleMediaType(showMovies = false)
                     }
@@ -85,7 +85,7 @@ fun HomeScreen(
                                 navController.navigate(
                                     Screen.MovieDetails.createRoute(
                                         media.id,
-                                        media.isMovie
+                                        state.areMoviesSelected
                                     )
                                 )
                             },

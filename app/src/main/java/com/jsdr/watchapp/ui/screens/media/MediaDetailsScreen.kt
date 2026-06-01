@@ -79,10 +79,25 @@ fun MediaDetailsScreen(
         is MediaDetailsUiState.TvSuccess -> state.profile.seriesDetails.overview
         else -> ""
     }
-    val dateOrSeasonsLabel = when (val state = uiState) {
-        is MediaDetailsUiState.MovieSuccess -> "Premiera: ${state.profile.movieDetails.releaseDate}"
-        is MediaDetailsUiState.TvSuccess -> "Sezony: ${state.profile.seriesDetails.numberOfSeasons}"
-        else -> "Premiera:"
+    val dates = when (val state = uiState) {
+        is MediaDetailsUiState.MovieSuccess ->
+            listOf("Premiera: ${state.profile.movieDetails.releaseDate}", "")
+        is MediaDetailsUiState.TvSuccess ->
+            listOf(
+                "Premierowy odcinek: ${state.profile.seriesDetails.firstAired}",
+                "Ostatni odcinek: ${state.profile.seriesDetails.lastAired}"
+            )
+        else -> listOf("Premiera:", "")
+    }
+    val seasons = when (val state = uiState) {
+        is MediaDetailsUiState.TvSuccess ->
+            "Liczba sezonów: ${state.profile.seriesDetails.numberOfSeasons}"
+        else -> "Brak informacji o sezonach"
+    }
+    val episodes = when (val state = uiState) {
+        is MediaDetailsUiState.TvSuccess ->
+            "Liczba odcinków: ${state.profile.seriesDetails.numberOfEpisodes}"
+        else -> "Brak informacji o odcinkach"
     }
     val cast = when (val state = uiState) {
         is MediaDetailsUiState.MovieSuccess -> state.profile.getTop5Actors().joinToString { it.name }
@@ -170,26 +185,56 @@ fun MediaDetailsScreen(
                 .padding(20.dp)
         ) {
             Text(
-                text = "Tytuł: $title",
+                text = title,
                 color = Color.White,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(14.dp))
-            Text(
-                text = "Synopsis: $overview",
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 18.sp
-            )
+            if (overview.isNotBlank()) {
+                Text(
+                    text = overview,
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.height(14.dp))
+            }
+            if (isMovie) {
+                Text(
+                    text = dates[0],
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 16.sp
+                )
+            } else {
+                Text(
+                    text = dates[0],
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = dates[1],
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 16.sp
+                )
+            }
             Spacer(modifier = Modifier.height(14.dp))
+            if (!isMovie) {
+                Text(
+                    text = seasons,
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = episodes,
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.height(14.dp))
+            }
             Text(
-                text = dateOrSeasonsLabel,
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 18.sp
-            )
-            Spacer(modifier = Modifier.height(14.dp))
-            Text(
-                text = "Obsada: $cast",
+                text = "Obsada: ${cast}, ...",
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 16.sp
             )

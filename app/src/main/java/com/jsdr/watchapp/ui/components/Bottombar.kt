@@ -29,9 +29,9 @@ fun WatchAppBottomBar(navController: NavController, currentRoute: String?) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(20.dp)
-            .clip(RoundedCornerShape(32.dp))
+            .clip(RoundedCornerShape(28.dp))
             .background(BrandPurple)
-            .padding(vertical = 12.dp, horizontal = 16.dp)
+            .padding(vertical = 8.dp, horizontal = 16.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -64,9 +64,9 @@ fun BottomNavIconPlaceholder(icon: ImageVector, isSelected: Boolean, onClick: ()
             .border(
                 width = 2.dp,
                 color = if (isSelected) Color.White else Color.Transparent,
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(6.dp)
             )
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(6.dp))
             .clickable { onClick() }
             .padding(8.dp),
         contentAlignment = Alignment.Center
@@ -75,7 +75,7 @@ fun BottomNavIconPlaceholder(icon: ImageVector, isSelected: Boolean, onClick: ()
             imageVector = icon,
             contentDescription = null,
             tint = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f),
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier.size(26.dp)
         )
     }
 }

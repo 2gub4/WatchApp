@@ -31,34 +31,32 @@ class MediaDetailsViewModel : ViewModel() {
             try {
                 withTimeout(10_000L) {
                     if (isMovie) {
-                        Log.d("MediaDetails", "Próbuję pobrać profil FILMU o ID: $mediaId")
+                        Log.d("MediaDetails", "trying to get details of movie with id: $mediaId")
                         val profile = WatchAppRepository.Movies.getMovieProfile(mediaId)
-
                         if (profile != null) {
-                            Log.d("MediaDetails", "Sukces! Pobrano film: ${profile.movieDetails.title}")
+                            Log.d("MediaDetails", "successfully received movie data: ${profile.movieDetails.title}")
                             _uiState.value = MediaDetailsUiState.MovieSuccess(profile)
                         } else {
-                            Log.e("MediaDetails", "API zwróciło null dla filmu.")
+                            Log.e("MediaDetails", "no data for movie.")
                             _uiState.value = MediaDetailsUiState.Error("Nie udało się pobrać filmu.")
                         }
                     } else {
-                        Log.d("MediaDetails", "Próbuję pobrać profil SERIALU o ID: $mediaId")
+                        Log.d("MediaDetails", "trying to get details of tv show with id: $mediaId")
                         val profile = WatchAppRepository.TvSeries.getTvSeriesProfile(mediaId)
-
                         if (profile != null) {
-                            Log.d("MediaDetails", "Sukces! Pobrano serial: ${profile.seriesDetails.title}")
+                            Log.d("MediaDetails", "successfully received movie data: ${profile.seriesDetails.title}")
                             _uiState.value = MediaDetailsUiState.TvSuccess(profile)
                         } else {
-                            Log.e("MediaDetails", "API zwróciło null dla serialu.")
+                            Log.e("MediaDetails", "no data for tv series.")
                             _uiState.value = MediaDetailsUiState.Error("Nie udało się pobrać serialu.")
                         }
                     }
                 }
             } catch (_: TimeoutCancellationException) {
-                Log.e("MediaDetails", "TIMEOUT! Zapytanie zablokowane w nieskończoność. Najpewniej problem z Firebase .await() lub .first()")
-                _uiState.value = MediaDetailsUiState.Error("Przekroczono czas oczekiwania (Timeout). Sprawdź logi!")
+                Log.e("MediaDetails", "Timeout! ")
+                _uiState.value = MediaDetailsUiState.Error("Przekroczono czas oczekiwania")
             } catch (e: Exception) {
-                Log.e("MediaDetails", "Krytyczny błąd pobierania: ${e.message}", e)
+                Log.e("MediaDetails", "Critical error: ${e.message}", e)
                 _uiState.value = MediaDetailsUiState.Error("Błąd: ${e.localizedMessage}")
             }
         }

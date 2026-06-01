@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 data class HomeViewState(
     val currentUser: String = CURRENT_USER,
     val language: String = "pl-PL",
-    val isMoviesSelected: Boolean = true, // true - movie, false - tv series
+    val areMoviesSelected: Boolean = true,
     val pageNumber: Int = 1,
     val isLoadingFirstPage: Boolean = true,
     val isLoadingNextPage: Boolean = false,
@@ -36,7 +36,7 @@ class HomeViewModel : ViewModel() {
             _viewState.update { it.copy(isLoadingFirstPage = true, error = null) }
             val state = _viewState.value
             try {
-                val newItems = fetchMediaPage(isMovies = state.isMoviesSelected, pageNumber = 1)
+                val newItems = fetchMediaPage(isMovies = state.areMoviesSelected, pageNumber = 1, "popular")
                 _viewState.update {
                     it.copy(
                         mediaList = newItems,
@@ -57,7 +57,7 @@ class HomeViewModel : ViewModel() {
             _viewState.update { it.copy(isLoadingNextPage = true) }
             val nextPage = state.pageNumber + 1
             try {
-                val newItems = fetchMediaPage(isMovies = state.isMoviesSelected, pageNumber = nextPage)
+                val newItems = fetchMediaPage(isMovies = state.areMoviesSelected, pageNumber = nextPage, "popular")
                 _viewState.update {
                     it.copy(
                         mediaList = it.mediaList + newItems,
@@ -72,10 +72,10 @@ class HomeViewModel : ViewModel() {
     }
 
     fun toggleMediaType(showMovies: Boolean) {
-        if (_viewState.value.isMoviesSelected == showMovies) return
+        if (_viewState.value.areMoviesSelected == showMovies) return
         _viewState.update {
             it.copy(
-                isMoviesSelected = showMovies,
+                areMoviesSelected = showMovies,
                 pageNumber = 1,
                 mediaList = emptyList(),
                 isLoadingFirstPage = true
@@ -84,12 +84,12 @@ class HomeViewModel : ViewModel() {
         loadInitialData()
     }
 
-    private suspend fun fetchMediaPage(isMovies: Boolean, pageNumber: Int): List<MediaOverview> {
+    private suspend fun fetchMediaPage(isMovies: Boolean, pageNumber: Int, pageType: String): List<MediaOverview> {
         return if (isMovies) {
-            val response = WatchAppRepository.Movies.getMoviePage(pageNumber = pageNumber, listType = "popular")
+            val response = WatchAppRepository.Movies.getMoviePage(pageNumber = pageNumber, listType = pageType)
             response?.results?.map { it.toDomain() } ?: emptyList()
         } else {
-            val response = WatchAppRepository.TvSeries.getTvSeriesPage(pageNumber = pageNumber, listType = "popular")
+            val response = WatchAppRepository.TvSeries.getTvSeriesPage(pageNumber = pageNumber, listType = pageType)
             response?.results?.map { it.toDomain() } ?: emptyList()
         }
     }

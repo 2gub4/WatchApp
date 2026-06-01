@@ -112,7 +112,7 @@ fun WatchApp() {
             }
             composable(Screen.MovieDetails.route) { backStackEntry ->
                 val mediaId = backStackEntry.arguments?.getString("movieId")?.toIntOrNull() ?: 0
-                val isMovie = backStackEntry.arguments?.getString("isMovie")?.toBoolean() ?: true
+                val isMovie = backStackEntry.arguments?.getString("isMovie")?.toBoolean() ?: false
                 MediaDetailsScreen(
                     mediaId = mediaId,
                     isMovie = isMovie,
