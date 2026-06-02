@@ -47,7 +47,8 @@ interface ITmdbEndpoints {
         @Query("page") page: Int,
         @Query("api_key") apiKey: String? = null,
         @Query("language") language: String? = null,
-        @Query("include_adult") includeAdultContent: Boolean = false
+        @Query("include_adult") includeAdultContent: Boolean = false,
+        @Query("region") region: String? = null
     ): MoviesPageDto
 
     @GET("tv/{series_id}")
