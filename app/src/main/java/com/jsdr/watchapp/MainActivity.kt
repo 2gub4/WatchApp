@@ -1,4 +1,5 @@
 package com.jsdr.watchapp
+
 import com.jsdr.watchapp.ui.navigation.Screen
 import com.jsdr.watchapp.ui.screens.user_profile.ProfileScreen
 import com.jsdr.watchapp.ui.screens.user_profile.StatisticsScreen

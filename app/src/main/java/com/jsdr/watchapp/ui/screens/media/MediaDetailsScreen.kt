@@ -114,7 +114,6 @@ fun MediaDetailsScreen(
         is MediaDetailsUiState.TvSuccess -> state.profile.seriesDetails.posterPath
         else -> null
     }
-
     Column(
         modifier = Modifier
             .fillMaxSize()

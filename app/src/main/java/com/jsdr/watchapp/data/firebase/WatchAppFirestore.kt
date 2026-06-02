@@ -4,9 +4,12 @@ import android.util.Log
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.snapshots
 import com.jsdr.watchapp.data.models.entities.Rating
 import com.jsdr.watchapp.data.models.entities.User
 import com.jsdr.watchapp.data.models.entities.UserList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
 //val testUsr = User(
@@ -14,6 +17,9 @@ import kotlinx.coroutines.tasks.await
 //    email = "test@example.com",
 //    username = "test_user_123",
 //    pfpPath = "pfp.png",
+//    birthYear = 2004,
+//    gender = "male",
+//    registrationDate = null,
 //    watchedMoviesCount = 0,
 //    watchedTvSeriesCount = 0,
 //    favouritesCount = 0,
@@ -21,31 +27,34 @@ import kotlinx.coroutines.tasks.await
 //)
 //
 //val favouritesTemplate = UserList(
+//    id = "favourites",
 //    name = "Ulubione",
 //    description = "Filmy i seriale, które wyjątkowo doceniłeś",
-//    movies = emptyList(),
-//    series = emptyList()
+//    movies = listOf(11),
+//    series = listOf(76479)
 //)
 //
 //val bucketlistTemplate = UserList(
+//    id = "bucketlist",
 //    name = "Kupka Wstydu",
 //    description = "Filmy i seriale, które już dawno powinieneś był obejrzeć",
-//    movies = emptyList(),
-//    series = emptyList()
+//    movies = listOf(1228710),
+//    series = listOf(220102)
 //)
 //
 //val watchedTemplate = UserList(
+//    id = "watched",
 //    name = "Obejrzane",
 //    description = "Filmy i seriale, które już obejrzałeś",
-//    movies = emptyList(),
-//    series = emptyList()
+//    movies = listOf(11, 803796),
+//    series = listOf(76479)
 //)
 //
 //val customListTest = UserList(
 //    name = "Guilty Pleasures",
 //    description = "Słabe produkcje, dobra zabawa",
 //    movies = listOf(1022690),
-//    series = listOf()
+//    series = emptyList()
 //)
 //
 //val ratingTest = Rating(
@@ -54,27 +63,15 @@ import kotlinx.coroutines.tasks.await
 //    7.0,
 //    8.0,
 //    5.0,
-//    7.0
+//    7.0,
+//    "fajny film, ale trochę się zestarzał"
 //)
 
 
 object WatchAppFirestore {
     val firestoreDb by lazy { Firebase.firestore }
 
-//    suspend fun initialSeeding() {
-//        try {
-//            firestoreDb.collection("users").document(testUsr.uid).set(testUsr).await()
-//            firestoreDb.collection("users").document(testUsr.uid).collection("lists").document("favourites").set(favouritesTemplate).await()
-//            firestoreDb.collection("users").document(testUsr.uid).collection("lists").document("bucketlist").set(bucketlistTemplate).await()
-//            Ratings.addMovieRating(testUsr.uid, ratingTest)
-//            Movies.addMovieToFavourites(testUsr.uid, 11)
-//            Movies.addMovieToBucketlist(testUsr.uid, 11)
-//            Lists.createUserList(testUsr.uid, customListTest)
-//            Movies.addMovieToListByListName(testUsr.uid, "Guilty Pleasures", 11)
-//        } catch (e: Exception) {
-//            Log.e("MovieFirestore", "Seeding Failure", e)
-//        }
-//    }
+//    suspend fun initialSeeding(): Unit {}
 
     object Users {
 
@@ -89,6 +86,14 @@ object WatchAppFirestore {
                 Log.e("WatchApp Firestore", "Could not get current user data")
                 null
             }
+        }
+
+        fun getUserProfileFlow(userId: String): Flow<User?> {
+            return firestoreDb.collection("users").document(userId)
+                .snapshots()
+                .map { snapshot ->
+                    snapshot.toObject(User::class.java)
+                }
         }
 
         suspend fun addUser(user: User) {
@@ -185,6 +190,18 @@ object WatchAppFirestore {
                     .update("email", email)
                     .await()
             }
+
+            suspend fun incrementCounter(userId: String, counter: String /*can be changed to enum*/) {
+                firestoreDb.collection("users").document(userId)
+                    .update(counter, FieldValue.increment(1))
+                    .await()
+            }
+
+            suspend fun decrementCounter(userId: String, counter: String /*can be changed to enum*/) {
+                firestoreDb.collection("users").document(userId)
+                    .update(counter, FieldValue.increment(-1))
+                    .await()
+            }
         }
 
     }
@@ -278,7 +295,11 @@ object WatchAppFirestore {
             }
         }
 
-        suspend fun deleteMovieRating(userId: String, movieId: String) {
+        suspend fun updateRating( ) {
+
+        }
+
+        suspend fun deleteRating(userId: String, movieId: String) {
             try {
                 firestoreDb.collection("users")
                     .document(userId)
