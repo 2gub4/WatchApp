@@ -2,7 +2,18 @@ package com.jsdr.watchapp.ui.screens.user_profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,59 +27,122 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
-
+import com.jsdr.watchapp.ui.components.SpotifyScrollbar
 
 @Composable
 fun StatisticsScreen(
     navController: NavController
 ) {
 
-    Column(
+    val gridState = rememberLazyGridState()
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBackground)
-            .padding(20.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "←",
-                color = BrandPurple,
-                fontSize = 32.sp,
 
-                modifier = Modifier
-                    .clickable {
-                        navController.popBackStack()
-                    }
-                    .padding(end = 16.dp)
+        LazyVerticalGrid(
+            state = gridState,
+            columns = GridCells.Fixed(1),
+
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp),
+
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+
+            contentPadding = PaddingValues(
+                top = 20.dp,
+                bottom = 120.dp,
+                end = 20.dp
             )
-            Text(
-                text = "Statystyki",
-                color = Color.White,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
-            )
+        ) {
+
+            item {
+
+                androidx.compose.foundation.layout.Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Text(
+                        text = "←",
+                        color = BrandPurple,
+                        fontSize = 32.sp,
+
+                        modifier = Modifier
+                            .clickable {
+                                navController.popBackStack()
+                            }
+                            .padding(end = 16.dp)
+                    )
+
+                    Text(
+                        text = "Statystyki",
+                        color = Color.White,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            item {
+                StatisticCard(
+                    title = "Obejrzane filmy",
+                    value = "0"
+                )
+            }
+
+            item {
+                StatisticCard(
+                    title = "Obejrzane seriale",
+                    value = "0"
+                )
+            }
+
+            item {
+                StatisticCard(
+                    title = "Polubione",
+                    value = "0"
+                )
+            }
+
+            item {
+                StatisticCard(
+                    title = "Wystawione oceny",
+                    value = "0"
+                )
+            }
+
+            // dodałem żeby upenic sie działa scrollbara(możemy wyjebac kubuś)
+
+            item {
+                StatisticCard(
+                    title = "Dodane do list",
+                    value = "0"
+                )
+            }
+
+            item {
+                StatisticCard(
+                    title = "Średnia ocen",
+                    value = "0.0"
+                )
+            }
+
+            item {
+                StatisticCard(
+                    title = "Utworzone listy",
+                    value = "0"
+                )
+            }
         }
-        Spacer(modifier = Modifier.height(40.dp))
-        StatisticCard(
-            title = "Obejrzane filmy",
-            value = "0"
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        StatisticCard(
-            title = "Obejrzane seriale",
-            value = "0"
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        StatisticCard(
-            title = "Polubione",
-            value = "0"
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        StatisticCard(
-            title = "Wystawione oceny",
-            value = "0"
+
+        SpotifyScrollbar(
+            gridState = gridState,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .fillMaxHeight()
         )
     }
 }
@@ -79,7 +153,7 @@ fun StatisticCard(
     value: String
 ) {
 
-    Column {
+    androidx.compose.foundation.layout.Column {
 
         Text(
             text = title,
