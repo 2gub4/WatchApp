@@ -1,5 +1,10 @@
 package com.jsdr.watchapp.ui.screens.media
-
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import com.jsdr.watchapp.ui.components.SpotifyScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -82,25 +87,31 @@ fun MediaDetailsScreen(
     val dates = when (val state = uiState) {
         is MediaDetailsUiState.MovieSuccess ->
             listOf("Premiera: ${state.profile.movieDetails.releaseDate}", "")
+
         is MediaDetailsUiState.TvSuccess ->
             listOf(
                 "Premierowy odcinek: ${state.profile.seriesDetails.firstAired}",
                 "Ostatni odcinek: ${state.profile.seriesDetails.lastAired}"
             )
+
         else -> listOf("Premiera:", "")
     }
     val seasons = when (val state = uiState) {
         is MediaDetailsUiState.TvSuccess ->
             "Liczba sezonów: ${state.profile.seriesDetails.numberOfSeasons}"
+
         else -> "Brak informacji o sezonach"
     }
     val episodes = when (val state = uiState) {
         is MediaDetailsUiState.TvSuccess ->
             "Liczba odcinków: ${state.profile.seriesDetails.numberOfEpisodes}"
+
         else -> "Brak informacji o odcinkach"
     }
     val cast = when (val state = uiState) {
-        is MediaDetailsUiState.MovieSuccess -> state.profile.getTop5Actors().joinToString { it.name }
+        is MediaDetailsUiState.MovieSuccess -> state.profile.getTop5Actors()
+            .joinToString { it.name }
+
         is MediaDetailsUiState.TvSuccess -> state.profile.getTop10Actors().joinToString { it.name }
         else -> ""
     }
@@ -114,235 +125,259 @@ fun MediaDetailsScreen(
         is MediaDetailsUiState.TvSuccess -> state.profile.seriesDetails.posterPath
         else -> null
     }
-    Column(
+    val gridState = rememberLazyGridState()
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBackground)
-            .verticalScroll(rememberScrollState())
-            .padding(12.dp)
     ) {
-        Box(
+
+        LazyVerticalGrid(
+            state = gridState,
+            columns = GridCells.Fixed(1),
+
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+
+
             modifier = Modifier
-                .fillMaxWidth()
-                .border(2.dp, BrandPurple)
-                .padding(12.dp)
-        ) {
-            Text(
-                text = "←",
-                color = Color.White,
-                fontSize = 30.sp,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .clickable { navController.popBackStack() }
+                .fillMaxSize(),
+
+            contentPadding = PaddingValues(
+                bottom = 120.dp,
+                end = 20.dp
             )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 40.dp)
-            ) {
-                Box(
+        ) {
+
+            item {
+                Text(
+                    text = "←",
+                    color = Color.White,
+                    fontSize = 30.sp,
                     modifier = Modifier
-                        .weight(1f)
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(BrandPurple),
-                    contentAlignment = Alignment.Center
+                        .align(Alignment.TopStart)
+                        .clickable { navController.popBackStack() }
+                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 40.dp)
                 ) {
-                    if (uiState is MediaDetailsUiState.Loading) {
-                        CircularProgressIndicator(color = Color.White)
-                    } else if (posterPath != null) {
-                        AsyncImage(
-                            model = "${WatchAppRepository.POSTERS_BASE_URL}$posterPath",
-                            contentDescription = "Plakat",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(320.dp)
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(BrandPurple),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (uiState is MediaDetailsUiState.Loading) {
+                            CircularProgressIndicator(color = Color.White)
+                        } else if (posterPath != null) {
+                            AsyncImage(
+                                model = "${WatchAppRepository.POSTERS_BASE_URL}$posterPath",
+                                contentDescription = "Plakat",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            Text(
+                                text = "Brak plakatu",
+                                color = Color.White,
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
+                }
+            }
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .clip(RoundedCornerShape(24.dp))
+                        .border(
+                            width = 2.dp,
+                            color = BrandPurple,
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        .padding(20.dp)
+                ) {
+                    Text(
+                        text = title,
+                        color = Color.White,
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    if (overview.isNotBlank()) {
+                        Text(
+                            text = overview,
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 16.sp
+                        )
+                        Spacer(modifier = Modifier.height(14.dp))
+                    }
+                    if (isMovie) {
+                        Text(
+                            text = dates[0],
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 16.sp
                         )
                     } else {
                         Text(
-                            text = "Brak plakatu",
-                            color = Color.White,
+                            text = dates[0],
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 16.sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = dates[1],
+                            color = Color.White.copy(alpha = 0.7f),
                             fontSize = 16.sp
                         )
                     }
-                }
-                Spacer(modifier = Modifier.width(20.dp))
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                )
-                {
-                    CircleMovieButton("<3")
-                    CircleMovieButton("⏰")
-                    CircleMovieButton("+")
-                }
-            }
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .border(2.dp, BrandPurple)
-                .padding(20.dp)
-        ) {
-            Text(
-                text = title,
-                color = Color.White,
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(14.dp))
-            if (overview.isNotBlank()) {
-                Text(
-                    text = overview,
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 16.sp
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-            }
-            if (isMovie) {
-                Text(
-                    text = dates[0],
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 16.sp
-                )
-            } else {
-                Text(
-                    text = dates[0],
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 16.sp
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = dates[1],
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 16.sp
-                )
-            }
-            Spacer(modifier = Modifier.height(14.dp))
-            if (!isMovie) {
-                Text(
-                    text = seasons,
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 16.sp
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = episodes,
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 16.sp
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-            }
-            Text(
-                text = "Obsada: ${cast}, ...",
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 16.sp
-            )
-            Spacer(modifier = Modifier.height(14.dp))
-            Text(
-                text = creatorLabel,
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 16.sp
-            )
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .border(2.dp, BrandPurple)
-                .padding(20.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    if (!isMovie) {
+                        Text(
+                            text = seasons,
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 16.sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = episodes,
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 16.sp
+                        )
+                        Spacer(modifier = Modifier.height(14.dp))
+                    }
+                    Text(
+                        text = "Obsada: ${cast}, ...",
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        text = creatorLabel,
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
 
-                for (i in 1..5) {
-                    Text(
-                        text = if (i <= overallRating) "★" else "☆",
-                        color = BrandPurple,
-                        fontSize = 40.sp,
-                        modifier = Modifier.clickable {
-                            overallRating = i
-                            showRatingsDialog = true
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            CircleMovieButton("<3")
+                            CircleMovieButton("⏰")
+                            CircleMovieButton("+")
                         }
-                    )
+
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+
+                        for (i in 1..5) {
+                            Text(
+                                text = if (i <= overallRating) "★" else "☆",
+                                color = BrandPurple,
+                                fontSize = 40.sp,
+                                modifier = Modifier.clickable {
+                                    overallRating = i
+                                    showRatingsDialog = true
+                                }
+                            )
+                        }
+                    }
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
-            OutlinedTextField(
-                value = reviewContent,
-                onValueChange = {
-                    reviewContent = it
+        }
+        if (showRatingsDialog) {
+            AlertDialog(
+                onDismissRequest = {},
+                containerColor = DarkBackground,
+                title = {
+                    Text(
+                        text = "Aspekty filmu",
+                        color = Color.White
+                    )
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(140.dp),
-                placeholder = {
-                    Text("Napisz opinię...")
+                text = {
+                    Column {
+                        RatingRow(
+                            title = "Fabuła",
+                            rating = plotRating,
+                            onRatingChange = {
+                                plotRating = it
+                            }
+                        )
+                        RatingRow(
+                            title = "Bohaterowie",
+                            rating = characterRating,
+                            onRatingChange = {
+                                characterRating = it
+                            }
+                        )
+                        RatingRow(
+                            title = "Muzyka",
+                            rating = musicRating,
+                            onRatingChange = {
+                                musicRating = it
+                            }
+                        )
+                        RatingRow(
+                            title = "Efekty specjalne",
+                            rating = sfxRating,
+                            onRatingChange = {
+                                sfxRating = it
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        OutlinedTextField(
+                            value = reviewContent,
+                            onValueChange = {
+                                reviewContent = it
+                                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(80.dp),
+                            placeholder = {
+                                Text("Napisz opinię...")
+                            },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = BrandPurple,
+                                unfocusedBorderColor = BrandPurple,
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                cursorColor = BrandPurple
+                            ),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                    }
                 },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = BrandPurple,
-                    unfocusedBorderColor = BrandPurple,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    cursorColor = BrandPurple
-                ),
-                shape = RoundedCornerShape(20.dp)
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showRatingsDialog = false
+                        }
+                    ) {
+                        Text(
+                            text = "Gotowe",
+                            color = BrandPurple
+                        )
+                    }
+                }
             )
         }
-    }
-    if (showRatingsDialog) {
-        AlertDialog(
-            onDismissRequest = {},
-            containerColor = DarkBackground,
-            title = {
-                Text(
-                    text = "Aspekty filmu",
-                    color = Color.White
-                )
-            },
-            text = {
-                Column {
-                    RatingRow(
-                        title = "Fabuła",
-                        rating = plotRating,
-                        onRatingChange = {
-                            plotRating = it
-                        }
-                    )
-                    RatingRow(
-                        title = "Bohaterowie",
-                        rating = characterRating,
-                        onRatingChange = {
-                            characterRating = it
-                        }
-                    )
-                    RatingRow(
-                        title = "Muzyka",
-                        rating = musicRating,
-                        onRatingChange = {
-                            musicRating = it
-                        }
-                    )
-                    RatingRow(
-                        title = "Efekty specjalne",
-                        rating = sfxRating,
-                        onRatingChange = {
-                            sfxRating = it
-                        }
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {}
-                ) {
-                    Text(
-                        text = "Gotowe",
-                        color = BrandPurple
-                    )
-                }
-            }
+        SpotifyScrollbar(
+            gridState = gridState,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .fillMaxHeight()
         )
     }
 }
+
