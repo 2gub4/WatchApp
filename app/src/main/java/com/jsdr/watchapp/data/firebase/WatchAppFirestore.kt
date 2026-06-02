@@ -12,62 +12,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
-//val testUsr = User(
-//    uid = "test_user",
-//    email = "test@example.com",
-//    username = "test_user_123",
-//    pfpPath = "pfp.png",
-//    birthYear = 2004,
-//    gender = "male",
-//    registrationDate = null,
-//    watchedMoviesCount = 0,
-//    watchedTvSeriesCount = 0,
-//    favouritesCount = 0,
-//    ratingsCount = 0
-//)
-//
-//val favouritesTemplate = UserList(
-//    id = "favourites",
-//    name = "Ulubione",
-//    description = "Filmy i seriale, które wyjątkowo doceniłeś",
-//    movies = listOf(11),
-//    series = listOf(76479)
-//)
-//
-//val bucketlistTemplate = UserList(
-//    id = "bucketlist",
-//    name = "Kupka Wstydu",
-//    description = "Filmy i seriale, które już dawno powinieneś był obejrzeć",
-//    movies = listOf(1228710),
-//    series = listOf(220102)
-//)
-//
-//val watchedTemplate = UserList(
-//    id = "watched",
-//    name = "Obejrzane",
-//    description = "Filmy i seriale, które już obejrzałeś",
-//    movies = listOf(11, 803796),
-//    series = listOf(76479)
-//)
-//
-//val customListTest = UserList(
-//    name = "Guilty Pleasures",
-//    description = "Słabe produkcje, dobra zabawa",
-//    movies = listOf(1022690),
-//    series = emptyList()
-//)
-//
-//val ratingTest = Rating(
-//    "11",
-//    7.0,
-//    7.0,
-//    8.0,
-//    5.0,
-//    7.0,
-//    "fajny film, ale trochę się zestarzał"
-//)
-
-
 object WatchAppFirestore {
     val firestoreDb by lazy { Firebase.firestore }
 
