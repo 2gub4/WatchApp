@@ -120,7 +120,7 @@ object WatchAppRepository {
                 when (val response = TmdbApi.TvSeriesData.fetchTvSeriesPage(listType, pageNumber)) {
                     is TmdbApiResult.OnSuccess -> response.data
                     is TmdbApiResult.OnFailure -> {
-                        Log.e("Movie Repository", "Could not recieve MoviesPageDto", response.error)
+                        Log.e("Movie Repository", "Could not recieve TvSeriesPageDto", response.error)
                         null
                     }
                 }

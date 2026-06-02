@@ -16,6 +16,7 @@ data class HomeViewState(
     val currentUser: String = CURRENT_USER,
     val language: String = "pl-PL",
     val areMoviesSelected: Boolean = true,
+    val selectedTab: String = "popular",
     val pageNumber: Int = 1,
     val isLoadingFirstPage: Boolean = true,
     val isLoadingNextPage: Boolean = false,
@@ -36,7 +37,7 @@ class HomeViewModel : ViewModel() {
             _viewState.update { it.copy(isLoadingFirstPage = true, error = null) }
             val state = _viewState.value
             try {
-                val newItems = fetchMediaPage(isMovies = state.areMoviesSelected, pageNumber = 1, "popular")
+                val newItems = fetchMediaPage(isMovies = state.areMoviesSelected, pageNumber = 1, state.selectedTab)
                 _viewState.update {
                     it.copy(
                         mediaList = newItems,
@@ -57,7 +58,7 @@ class HomeViewModel : ViewModel() {
             _viewState.update { it.copy(isLoadingNextPage = true) }
             val nextPage = state.pageNumber + 1
             try {
-                val newItems = fetchMediaPage(isMovies = state.areMoviesSelected, pageNumber = nextPage, "popular")
+                val newItems = fetchMediaPage(isMovies = state.areMoviesSelected, pageNumber = nextPage, state.selectedTab)
                 _viewState.update {
                     it.copy(
                         mediaList = it.mediaList + newItems,
@@ -76,8 +77,24 @@ class HomeViewModel : ViewModel() {
         _viewState.update {
             it.copy(
                 areMoviesSelected = showMovies,
+                selectedTab = "popular", // ZABEZPIECZENIE: Resetujemy zakładkę na domyślną przy zmianie trybu
                 pageNumber = 1,
                 mediaList = emptyList(),
+                isLoadingFirstPage = true
+            )
+        }
+        loadInitialData()
+    }
+
+    // NOWA METODA: Obsługa wyboru zakładki
+    fun setSelectedTab(tabValue: String) {
+        if (_viewState.value.selectedTab == tabValue) return // Ignorujemy kliknięcie w już aktywną zakładkę
+
+        _viewState.update {
+            it.copy(
+                selectedTab = tabValue,
+                pageNumber = 1, // Reset paginacji
+                mediaList = emptyList(), // Czyszczenie widoku przed załadowaniem nowych danych
                 isLoadingFirstPage = true
             )
         }
@@ -92,13 +109,5 @@ class HomeViewModel : ViewModel() {
             val response = WatchAppRepository.TvSeries.getTvSeriesPage(pageNumber = pageNumber, listType = pageType)
             response?.results?.map { it.toDomain() } ?: emptyList()
         }
-    }
-
-    fun openProfile(id: Int) {
-        _viewState.update { it.copy(selectedMediaId = id) }
-    }
-
-    fun closeProfile() {
-        _viewState.update { it.copy(selectedMediaId = null) }
     }
 }
