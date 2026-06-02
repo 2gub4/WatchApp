@@ -17,4 +17,7 @@ data class User(
     val watchedTvSeriesCount: Int = 0,
     val favouritesCount: Int = 0,
     val ratingsCount: Int = 0,
+    val totalListCount: Int = 0,
+    val moviesAddedToListsCount: Int = 0,
+    val averageRating: Double = 0.0
 )
