@@ -3,8 +3,9 @@ package com.jsdr.watchapp.data.firebase
 import com.jsdr.watchapp.data.models.entities.Rating
 import com.jsdr.watchapp.data.models.entities.User
 import com.jsdr.watchapp.data.models.entities.UserList
+import kotlin.collections.emptyList
 
-class DataSeeder {
+object DataSeeder {
     private val testUsr = User(
         uid = "test_user",
         email = "test@example.com",
@@ -26,30 +27,30 @@ class DataSeeder {
         id = "favourites",
         name = "Ulubione",
         description = "Filmy i seriale, które wyjątkowo doceniłeś",
-        movies = listOf(11),
-        series = listOf(76479)
+        movies = emptyList(),
+        series = emptyList()
     )
 
     private val bucketlistTemplate = UserList(
         id = "bucketlist",
         name = "Kupka Wstydu",
         description = "Filmy i seriale, które już dawno powinieneś był obejrzeć",
-        movies = listOf(1228710),
-        series = listOf(220102)
+        movies = emptyList(),
+        series = emptyList()
     )
 
     private val watchedTemplate = UserList(
         id = "watched",
         name = "Obejrzane",
         description = "Filmy i seriale, które już obejrzałeś",
-        movies = listOf(11, 803796),
-        series = listOf(76479)
+        movies = emptyList(),
+        series = emptyList()
     )
 
     private val customListTest = UserList(
         name = "Guilty Pleasures",
         description = "Słabe produkcje, dobra zabawa",
-        movies = listOf(1022690),
+        movies = emptyList(),
         series = emptyList()
     )
 
@@ -63,7 +64,23 @@ class DataSeeder {
         "fajny film, ale trochę się zestarzał"
     )
 
-    fun performInitialSeeding() {
+    suspend fun performInitialSeeding() {
+        WatchAppFirestore.Users.addUser(testUsr)
+        WatchAppFirestore.Lists.createUserList(testUsr.uid, customListTest)
+        WatchAppFirestore.Lists.createUserList(testUsr.uid, bucketlistTemplate)
+        WatchAppFirestore.Lists.createUserList(testUsr.uid, favouritesTemplate)
+        WatchAppFirestore.Lists.createUserList(testUsr.uid, watchedTemplate)
+        WatchAppFirestore.Ratings.addMediaRating(testUsr.uid, 11, true, ratingTest)
+        WatchAppFirestore.Media.addMediaToList(testUsr.uid, "favourites", 11, true)
+        WatchAppFirestore.Media.addMediaToList(testUsr.uid, "favourites", 60625, false)
+        WatchAppFirestore.Media.addMediaToList(testUsr.uid, "bucketlist", 60625, false)
+        WatchAppFirestore.Media.addMediaToList(testUsr.uid, "watched", 11, true)
+    }
 
+    suspend fun testUserDataUpdates() {
+        WatchAppFirestore.Users.Updates.updateUsername(testUsr.uid, "test_user_456")
+        WatchAppFirestore.Users.Updates.updateGender(testUsr.uid, "female")
+        WatchAppFirestore.Users.Updates.updateBirthYear(testUsr.uid, 1999)
+        WatchAppFirestore.Users.Updates.updateEmail(testUsr.uid, "newtest@email-example.com")
     }
 }

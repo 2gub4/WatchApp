@@ -305,9 +305,7 @@ object WatchAppFirestore {
         suspend fun removeMediaFromListByName(userId: String, listName: String, mediaId: Int, isMovie: Boolean) {
             val snap = firestoreDb.collection("users").document(userId)
                 .collection("lists").whereEqualTo("name", listName).limit(1).get().await()
-
             if (snap.isEmpty) throw Exception("No list with name '$listName' in database!")
-
             val listId = snap.documents[0].id
             removeMediaFromList(userId, listId, mediaId, isMovie)
         }
