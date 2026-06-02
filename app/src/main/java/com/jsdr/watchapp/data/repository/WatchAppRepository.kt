@@ -28,6 +28,15 @@ object WatchAppRepository {
                 stats.await()
             }
         }
+        suspend fun update(subject: String /*Could be changed to enum*/, newValue: String) {
+            when (subject) {
+                "username" -> WatchAppFirestore.Users.Updates.updateUsername(CURRENT_USER, newValue)
+                "gender" -> WatchAppFirestore.Users.Updates.updateGender(CURRENT_USER, newValue)
+                "birthYear" -> WatchAppFirestore.Users.Updates.updateBirthYear(CURRENT_USER, newValue.toInt())
+                "email" -> WatchAppFirestore.Users.Updates.updateEmail(CURRENT_USER, newValue)
+                else -> throw Exception("Illegal argument: $subject")
+            }
+        }
     }
 
     object Movies {

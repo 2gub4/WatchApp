@@ -93,7 +93,6 @@ fun MediaDetailsScreen(
                 "Premierowy odcinek: ${state.profile.seriesDetails.firstAired}",
                 "Ostatni odcinek: ${state.profile.seriesDetails.lastAired}"
             )
-
         else -> listOf("Premiera:", "")
     }
     val seasons = when (val state = uiState) {
@@ -136,13 +135,9 @@ fun MediaDetailsScreen(
         LazyVerticalGrid(
             state = gridState,
             columns = GridCells.Fixed(1),
-
             verticalArrangement = Arrangement.spacedBy(16.dp),
-
-
             modifier = Modifier
                 .fillMaxSize(),
-
             contentPadding = PaddingValues(
                 bottom = 120.dp,
                 end = 20.dp
