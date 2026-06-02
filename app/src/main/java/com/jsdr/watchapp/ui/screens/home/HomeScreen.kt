@@ -1,27 +1,25 @@
 package com.jsdr.watchapp.ui.screens.home
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-//import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.ui.components.CategoryButton
 import com.jsdr.watchapp.ui.components.MediaTile
 import com.jsdr.watchapp.ui.components.SpotifyScrollbar
 import com.jsdr.watchapp.ui.navigation.Screen
-import com.jsdr.watchapp.BrandPurple
 
 @Composable
 fun HomeScreen(
@@ -29,59 +27,133 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel()
 ) {
+
     val gridState = rememberLazyGridState()
     val state by viewModel.viewState.collectAsState()
+
+    var selectedCategory by remember {
+        mutableStateOf("Popularne")
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp)
     ) {
+
         Column {
+
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 20.dp),
+                    .padding(bottom = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+
                 CategoryButton(
                     title = "Filmy",
                     isSelected = state.areMoviesSelected,
                     onClick = {
-                        viewModel.toggleMediaType(showMovies = true)
-                    },
+                        viewModel.toggleMediaType(true)
+                    }
                 )
+
                 CategoryButton(
                     title = "Seriale",
                     isSelected = !state.areMoviesSelected,
                     onClick = {
-                        viewModel.toggleMediaType(showMovies = false)
+                        viewModel.toggleMediaType(false)
                     }
                 )
             }
-            if (state.isLoadingFirstPage) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = BrandPurple)
-                }
+
+
+            val categories = if (state.areMoviesSelected) {
+                listOf(
+                    "Popularne",
+                    "Teraz grane",
+                    "Najwyżej oceniane",
+                    "Nadchodzące"
+                )
             } else {
+                listOf(
+                    "Popularne",
+                    "Teraz emitowane",
+                    "Najwyżej oceniane"
+                )
+            }
+
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+
+                items(categories) { category ->
+
+                    CategoryButton(
+                        title = category,
+                        isSelected = selectedCategory == category,
+                        onClick = {
+                            selectedCategory = category
+                        },
+
+                        horizontalPadding = 10,
+                        verticalPadding = 4,
+                        cornerSize = 30
+                    )
+                }
+            }
+
+            if (state.isLoadingFirstPage) {
+
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    CircularProgressIndicator(
+                        color = BrandPurple
+                    )
+                }
+
+            } else {
+
                 LazyVerticalGrid(
                     state = gridState,
                     columns = GridCells.Fixed(3),
+
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(end = 16.dp),
+
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
-                    contentPadding = PaddingValues(bottom = 20.dp)
+
+                    contentPadding = PaddingValues(
+                        bottom = 20.dp
+                    )
                 ) {
+
                     itemsIndexed(state.mediaList) { index, media ->
-                        if (index >= state.mediaList.size - 4 && !state.isLoadingNextPage) {
+
+                        if (
+                            index >= state.mediaList.size - 4 &&
+                            !state.isLoadingNextPage
+                        ) {
+
                             LaunchedEffect(index) {
                                 viewModel.loadNextPage()
                             }
                         }
+
                         MediaTile(
                             media = media,
+
                             onClick = {
+
                                 navController.navigate(
                                     Screen.MovieDetails.createRoute(
                                         media.id,
@@ -89,24 +161,37 @@ fun HomeScreen(
                                     )
                                 )
                             },
+
                             modifier = Modifier.aspectRatio(0.6f)
                         )
                     }
+
                     if (state.isLoadingNextPage) {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
+
+                        item(
+                            span = {
+                                GridItemSpan(maxLineSpan)
+                            }
+                        ) {
+
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 16.dp),
+
                                 contentAlignment = Alignment.Center
                             ) {
-                                CircularProgressIndicator(color = BrandPurple)
+
+                                CircularProgressIndicator(
+                                    color = BrandPurple
+                                )
                             }
                         }
                     }
                 }
             }
         }
+
         SpotifyScrollbar(
             gridState = gridState,
             modifier = Modifier
@@ -115,6 +200,3 @@ fun HomeScreen(
         )
     }
 }
-
-//resetować położenie scrollbara
-//wywoływać profil w odpowiedni sposób

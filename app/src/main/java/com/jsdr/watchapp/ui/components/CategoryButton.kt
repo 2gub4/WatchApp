@@ -22,7 +22,11 @@ fun CategoryButton(
     title: String,
     isSelected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+
+    cornerSize: Int = 50,
+    horizontalPadding: Int = 20,
+    verticalPadding: Int = 10
 ) {
     val backgroundColor = if (isSelected) BrandPurple else Color.Transparent
     val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else Color.White
@@ -38,7 +42,10 @@ fun CategoryButton(
                 shape = RoundedCornerShape(50)
             )
             .clickable { onClick() }
-            .padding(horizontal = 20.dp, vertical = 10.dp),
+            .padding(
+                horizontal = horizontalPadding.dp,
+                vertical = verticalPadding.dp
+            ),
         contentAlignment = Alignment.Center
     ) {
         Text(
