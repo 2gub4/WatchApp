@@ -44,7 +44,7 @@ class MediaDetailsViewModel : ViewModel() {
                         Log.d("MediaDetails", "trying to get details of tv show with id: $mediaId")
                         val profile = WatchAppRepository.TvSeries.getTvSeriesProfile(mediaId)
                         if (profile != null) {
-                            Log.d("MediaDetails", "successfully received movie data: ${profile.seriesDetails.title}")
+                            Log.d("MediaDetails", "successfully received tv show data: ${profile.seriesDetails.title}")
                             _uiState.value = MediaDetailsUiState.TvSuccess(profile)
                         } else {
                             Log.e("MediaDetails", "no data for tv series.")

@@ -26,6 +26,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.jsdr.watchapp.data.firebase.DataSeeder
 
 val DarkBackground = Color(0xFF212121)
 val BrandPurple = Color(0xFF7F52FF)
@@ -42,6 +43,10 @@ class MainActivity : ComponentActivity() {
                     color = DarkBackground
                 ) {
                     WatchApp()
+                    LaunchedEffect(Unit) {
+                        //DataSeeder.performInitialSeeding()
+                        //DataSeeder.testUserDataUpdates()
+                    }
                 }
             }
         }

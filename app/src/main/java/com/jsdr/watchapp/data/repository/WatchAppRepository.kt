@@ -45,8 +45,8 @@ object WatchAppRepository {
         suspend fun getMovieProfile(movieId: Int): MovieProfile? {
             return withContext(Dispatchers.IO) {
                 val apiMovieDetails = async { getApiMovieDetails(movieId) }
-                val potentialUserRating = async { WatchAppFirestore.Ratings.getMovieRating(CURRENT_USER, movieId.toString()) }
-                val containingLists = async { WatchAppFirestore.Lists.getListsContainingMovie(CURRENT_USER, movieId.toString()) }
+                val potentialUserRating = async { WatchAppFirestore.Ratings.getMediaRating(CURRENT_USER, movieId, true) }
+                val containingLists = async { WatchAppFirestore.Lists.getListsContainingMedia(CURRENT_USER, movieId, true) }
                 val details = apiMovieDetails.await() ?: return@withContext null
                 MovieProfile(
                     movieDetails = details,
@@ -95,8 +95,8 @@ object WatchAppRepository {
         suspend fun getTvSeriesProfile(seriesId: Int): TvSeriesProfile? {
             return withContext(Dispatchers.IO) {
                 val apiTvSeriesDetails = async { getApiTvSeriesDetails(seriesId) }
-                val potentialUserRating = async { WatchAppFirestore.Ratings.getMovieRating(CURRENT_USER, seriesId.toString()) }
-                val containingLists = async { WatchAppFirestore.Lists.getListsContainingMovie(CURRENT_USER, seriesId.toString()) }
+                val potentialUserRating = async { WatchAppFirestore.Ratings.getMediaRating(CURRENT_USER, seriesId, false) }
+                val containingLists = async { WatchAppFirestore.Lists.getListsContainingMedia(CURRENT_USER, seriesId, false) }
                 val details = apiTvSeriesDetails.await() ?: return@withContext null
                 TvSeriesProfile(
                     seriesDetails = details,
