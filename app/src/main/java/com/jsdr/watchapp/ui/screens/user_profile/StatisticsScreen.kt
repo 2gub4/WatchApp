@@ -17,6 +17,8 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,15 +27,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
 import com.jsdr.watchapp.ui.components.SpotifyScrollbar
 
 @Composable
 fun StatisticsScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: UserProfileViewModel = viewModel()
 ) {
     val gridState = rememberLazyGridState()
+    val statsState by viewModel.statsState.collectAsState()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -53,16 +59,13 @@ fun StatisticsScreen(
             )
         ) {
             item {
-
                 androidx.compose.foundation.layout.Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-
                     Text(
                         text = "←",
                         color = BrandPurple,
                         fontSize = 32.sp,
-
                         modifier = Modifier
                             .clickable {
                                 navController.popBackStack()
@@ -81,41 +84,41 @@ fun StatisticsScreen(
             item {
                 StatisticCard(
                     title = "Obejrzane filmy",
-                    value = "0"
+                    value = statsState.watchedMovies.toString()
                 )
             }
             item {
                 StatisticCard(
                     title = "Obejrzane seriale",
-                    value = "0"
+                    value = statsState.watchedSeries.toString()
                 )
             }
             item {
                 StatisticCard(
                     title = "Polubione",
-                    value = "0"
+                    value = statsState.totalFavourites.toString()
                 )
             }
             item {
                 StatisticCard(
                     title = "Wystawione oceny",
-                    value = "0"
+                    value = statsState.totalRatings.toString()
                 )
             }
             item {
                 StatisticCard(
                     title = "Średnia ocen",
-                    value = "0.0"
+                    value = String.format("%.1f", statsState.averageRating)
                 )
             }
-
             item {
                 StatisticCard(
                     title = "Utworzone listy",
-                    value = "0"
+                    value = statsState.totalLists.toString()
                 )
             }
         }
+
         SpotifyScrollbar(
             gridState = gridState,
             modifier = Modifier

@@ -22,12 +22,18 @@ object WatchAppRepository {
     const val POSTERS_BASE_URL = "https://image.tmdb.org/t/p/w500"
 
     object User {
+
+        suspend fun getUser(userId: String = CURRENT_USER): com.jsdr.watchapp.data.models.entities.User? {
+            return WatchAppFirestore.Users.getCurrentUser(userId)
+        }
+
         suspend fun getUserStats(): Map<String, Double> /*change to ints in repository except for average rating*/ {
             return withContext(Dispatchers.IO) {
                 val stats = async { WatchAppFirestore.Users.getUserStats(CURRENT_USER) }
                 stats.await()
             }
         }
+
         suspend fun update(subject: String /*Could be changed to enum*/, newValue: String) {
             when (subject) {
                 "username" -> WatchAppFirestore.Users.Updates.updateUsername(CURRENT_USER, newValue)

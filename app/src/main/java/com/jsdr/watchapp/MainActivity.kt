@@ -46,6 +46,7 @@ class MainActivity : ComponentActivity() {
                     LaunchedEffect(Unit) {
                         //DataSeeder.performInitialSeeding()
                         //DataSeeder.testUserDataUpdates()
+                        DataSeeder.testAddingTvSeries()
                     }
                 }
             }

@@ -1,5 +1,6 @@
 package com.jsdr.watchapp.ui.screens.user_profile
 
+import android.annotation.SuppressLint
 import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
 import com.jsdr.watchapp.ui.navigation.Screen
@@ -26,43 +27,19 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import kotlin.math.max
 import androidx.compose.animation.core.animateDpAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun ProfileScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: UserProfileViewModel = viewModel()
 ) {
+    val userProfile by viewModel.userProfileState.collectAsState()
 
-    var username by remember {
-        mutableStateOf("Nazwa użytkownika")
-    }
-
-    var email by remember {
-        mutableStateOf("email@gmail.com")
-    }
-
-    var birthYear by remember {
-        mutableStateOf("2000")
-    }
-
-    var gender by remember {
-        mutableStateOf("Pan")
-    }
-
-    var showUsernameDialog by remember {
-        mutableStateOf(false)
-    }
-
-    var showEmailDialog by remember {
-        mutableStateOf(false)
-    }
-
-    var showBirthDialog by remember {
-        mutableStateOf(false)
-    }
-
-    var showGenderDialog by remember {
-        mutableStateOf(false)
-    }
+    var showUsernameDialog by remember { mutableStateOf(false) }
+    var showEmailDialog by remember { mutableStateOf(false) }
+    var showBirthDialog by remember { mutableStateOf(false) }
+    var showGenderDialog by remember { mutableStateOf(false) }
 
     val listState = rememberLazyListState()
 
@@ -77,9 +54,7 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(end = 18.dp),
-
             verticalArrangement = Arrangement.spacedBy(18.dp),
-
             contentPadding = PaddingValues(
                 top = 20.dp,
                 bottom = 120.dp
@@ -87,36 +62,27 @@ fun ProfileScreen(
         ) {
 
             item {
-
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-
                     Box(
                         modifier = Modifier
                             .size(120.dp)
                             .clip(CircleShape)
                             .background(BrandPurple),
-
                         contentAlignment = Alignment.Center
                     ) {
-
-                        Text(
-                            text = "👤",
-                            fontSize = 50.sp
-                        )
+                        Text(text = "👤", fontSize = 50.sp)
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // NAZWA
                     Text(
-                        text = username,
+                        text = userProfile.username ?: "Nazwa użytkownika",
                         color = Color.White,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
-
                         modifier = Modifier.clickable {
                             showUsernameDialog = true
                         }
@@ -125,56 +91,41 @@ fun ProfileScreen(
             }
 
             item {
-
                 ProfileInfoItem(
                     title = "Email",
-                    value = email,
-                    onClick = {
-                        showEmailDialog = true
-                    }
+                    value = userProfile.email ?: "Brak danych",
+                    onClick = { showEmailDialog = true }
                 )
             }
 
             item {
-
                 ProfileInfoItem(
                     title = "Rok urodzenia",
-                    value = birthYear,
-                    onClick = {
-                        showBirthDialog = true
-                    }
+                    value = userProfile.birthYear?.toString() ?: "Brak danych",
+                    onClick = { showBirthDialog = true }
                 )
             }
 
             item {
-
                 ProfileInfoItem(
                     title = "Płeć",
-                    value = gender,
-                    onClick = {
-                        showGenderDialog = true
-                    }
+                    value = userProfile.gender ?: "Brak danych",
+                    onClick = { showGenderDialog = true }
                 )
             }
 
             item {
-
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(20.dp))
                         .background(BrandPurple)
                         .clickable {
-
-                            navController.navigate(
-                                Screen.Statistics.route
-                            )
+                            navController.navigate(Screen.Statistics.route)
                         }
                         .padding(20.dp),
-
                     contentAlignment = Alignment.Center
                 ) {
-
                     Text(
                         text = "Statystyki",
                         color = Color.White,
@@ -187,113 +138,86 @@ fun ProfileScreen(
 
         SpotifyScrollbarList(
             listState = listState,
-
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .fillMaxHeight()
         )
     }
 
-
     if (showUsernameDialog) {
-
         EditDialog(
             title = "Nazwa użytkownika",
-            currentValue = username,
-            onDismiss = {
-                showUsernameDialog = false
-            },
+            currentValue = userProfile.username ?: "",
+            onDismiss = { showUsernameDialog = false },
             onConfirm = {
-                username = it
+                viewModel.updateUserField("username", it)
                 showUsernameDialog = false
             }
         )
     }
-
 
     if (showEmailDialog) {
-
         EditDialog(
             title = "Email",
-            currentValue = email,
-            onDismiss = {
-                showEmailDialog = false
-            },
+            currentValue = userProfile.email ?: "",
+            onDismiss = { showEmailDialog = false },
             onConfirm = {
-                email = it
+                viewModel.updateUserField("email", it)
                 showEmailDialog = false
             }
         )
     }
 
-
     if (showBirthDialog) {
-
         EditDialog(
             title = "Rok urodzenia",
-            currentValue = birthYear,
-            onDismiss = {
-                showBirthDialog = false
-            },
+            currentValue = userProfile.birthYear?.toString() ?: "",
+            onDismiss = { showBirthDialog = false },
             onConfirm = {
-                birthYear = it
+                if (it.toIntOrNull() != null) {
+                    viewModel.updateUserField("birthYear", it)
+                }
                 showBirthDialog = false
             }
         )
     }
 
     if (showGenderDialog) {
-
         AlertDialog(
-            onDismissRequest = {
-                showGenderDialog = false
-            },
-
+            onDismissRequest = { showGenderDialog = false },
             containerColor = DarkBackground,
-
             title = {
-                Text(
-                    text = "Wybierz płeć",
-                    color = Color.White
-                )
+                Text(text = "Wybierz płeć", color = Color.White)
             },
-
             text = {
-
                 Column {
-
                     Text(
                         text = "Pan",
                         color = Color.White,
                         fontSize = 20.sp,
-
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                gender = "Pan"
+                                viewModel.updateUserField("gender", "Pan")
                                 showGenderDialog = false
                             }
                             .padding(16.dp)
                     )
-
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Text(
                         text = "Pani",
                         color = Color.White,
                         fontSize = 20.sp,
-
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                gender = "Pani"
+                                viewModel.updateUserField("gender", "Pani")
                                 showGenderDialog = false
                             }
                             .padding(16.dp)
                     )
                 }
             },
-
             confirmButton = {}
         )
     }
@@ -305,26 +229,20 @@ fun ProfileInfoItem(
     value: String,
     onClick: () -> Unit
 ) {
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(BrandPurple)
-            .clickable {
-                onClick()
-            }
+            .clickable { onClick() }
             .padding(20.dp)
     ) {
-
         Text(
             text = title,
             color = Color.White.copy(alpha = 0.7f),
             fontSize = 14.sp
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         Text(
             text = value,
             color = Color.White,
@@ -341,35 +259,19 @@ fun EditDialog(
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit
 ) {
-
-    var text by remember {
-        mutableStateOf(currentValue)
-    }
+    var text by remember { mutableStateOf(currentValue) }
 
     AlertDialog(
-        onDismissRequest = {
-            onDismiss()
-        },
-
+        onDismissRequest = { onDismiss() },
         containerColor = DarkBackground,
-
         title = {
-            Text(
-                text = title,
-                color = Color.White
-            )
+            Text(text = title, color = Color.White)
         },
-
         text = {
-
             OutlinedTextField(
                 value = text,
-                onValueChange = {
-                    text = it
-                },
-
+                onValueChange = { text = it },
                 modifier = Modifier.fillMaxWidth(),
-
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = BrandPurple,
                     unfocusedBorderColor = BrandPurple,
@@ -379,48 +281,30 @@ fun EditDialog(
                 )
             )
         },
-
         confirmButton = {
-
             TextButton(
-                onClick = {
-                    onConfirm(text)
-                }
+                onClick = { onConfirm(text) }
             ) {
-
-                Text(
-                    text = "OK",
-                    color = BrandPurple
-                )
+                Text(text = "OK", color = BrandPurple)
             }
         },
-
         dismissButton = {
-
             TextButton(
-                onClick = {
-                    onDismiss()
-                }
+                onClick = { onDismiss() }
             ) {
-
-                Text(
-                    text = "Anuluj",
-                    color = Color.Gray
-                )
+                Text(text = "Anuluj", color = Color.Gray)
             }
         }
     )
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun SpotifyScrollbarList(
     listState: androidx.compose.foundation.lazy.LazyListState,
     modifier: Modifier = Modifier
 ) {
-
-    var isDragging by remember {
-        mutableStateOf(false)
-    }
+    var isDragging by remember { mutableStateOf(false) }
 
     val thumbWidth by animateDpAsState(
         targetValue = if (isDragging) 8.dp else 4.dp,
@@ -451,47 +335,26 @@ fun SpotifyScrollbarList(
         modifier = modifier
             .width(32.dp)
             .pointerInput(Unit) {
-
                 detectVerticalDragGestures(
-
-                    onDragStart = {
-                        isDragging = true
-                    },
-
-                    onDragEnd = {
-                        isDragging = false
-                    },
-
-                    onDragCancel = {
-                        isDragging = false
-                    }
-
+                    onDragStart = { isDragging = true },
+                    onDragEnd = { isDragging = false },
+                    onDragCancel = { isDragging = false }
                 ) { change, dragAmount ->
-
                     change.consume()
-
                     coroutineScope.launch {
-
                         val scrollMultiplier =
                             if (visibleItemsCount > 0) {
                                 (totalItemsCount.toFloat() / visibleItemsCount) * 1.5f
                             } else {
                                 5f
                             }
-
-                        listState.scrollBy(
-                            dragAmount * scrollMultiplier
-                        )
+                        listState.scrollBy(dragAmount * scrollMultiplier)
                     }
                 }
             }
     ) {
-
         val trackHeight = maxHeight.value
-
-        val thumbHeight =
-            max(trackHeight * thumbSizeProportion, 30f).dp
-
+        val thumbHeight = max(trackHeight * thumbSizeProportion, 30f).dp
         val maxOffsetY = maxHeight - thumbHeight
 
         val offsetY =

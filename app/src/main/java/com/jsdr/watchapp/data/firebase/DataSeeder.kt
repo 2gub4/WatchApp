@@ -20,7 +20,7 @@ object DataSeeder {
         ratingsCount = 0,
         totalListCount = 0,
         //moviesAddedToListsCount = 0,
-        averageRating = 0.0
+        //averageRating = 0.0
     )
 
     private val favouritesTemplate = UserList(
@@ -82,5 +82,9 @@ object DataSeeder {
         WatchAppFirestore.Users.Updates.updateGender(testUsr.uid, "female")
         WatchAppFirestore.Users.Updates.updateBirthYear(testUsr.uid, 1999)
         WatchAppFirestore.Users.Updates.updateEmail(testUsr.uid, "newtest@email-example.com")
+    }
+
+    suspend fun testAddingTvSeries() {
+        WatchAppFirestore.Media.addMediaToList(testUsr.uid, "watched", 1396, false)
     }
 }

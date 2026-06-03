@@ -63,22 +63,18 @@ object WatchAppFirestore {
                     .document(userId)
                     .get()
                     .await()
-                val watchedMovies = snap.get("watchedMoviesCount") as? Double ?: 0.0
-                val watchedTvSeries = snap.get("watchedTvSeriesCount") as? Double ?: 0.0
-                val favourites = snap.get("favouritesCount") as? Double ?: 0.0
-                val ratings = snap.get("ratingsCount") as? Double ?: 0.0
-                val lists = snap.get("totalListCount") as? Double ?: 0.0
+                val user = snap.toObject(User::class.java)
                 val averageRating = Ratings.getAverageRating(userId) ?: 0.0
                 mapOf(
-                    "watchedMovies" to watchedMovies,
-                    "watchedSeries" to watchedTvSeries,
-                    "totalFavourites" to favourites,
-                    "totalRatings" to ratings,
-                    "totalLists" to lists,
+                    "watchedMovies" to (user?.watchedMoviesCount?.toDouble() ?: 0.0),
+                    "watchedSeries" to (user?.watchedTvSeriesCount?.toDouble() ?: 0.0),
+                    "totalFavourites" to (user?.favouritesCount?.toDouble() ?: 0.0),
+                    "totalRatings" to (user?.ratingsCount?.toDouble() ?: 0.0),
+                    "totalLists" to (user?.totalListCount?.toDouble()?.minus(3) ?: 0.0),
                     "averageRating" to averageRating
                 )
             } catch (e: Exception) {
-                Log.e("Movie Firestore", "Could not get movies watched by user: $userId", e)
+                Log.e("WatchApp Firestore", "Could not get user stats for user: $userId", e)
                 emptyMap()
             }
         }
@@ -120,7 +116,7 @@ object WatchAppFirestore {
             }
 
             suspend fun updateGender(userId: String, gender: String) {
-                if (gender == "male" || gender == "female") {
+                if (gender == "Pan" || gender == "Pani") {
                     firestoreDb.collection("users")
                         .document(userId)
                         .update("gender", gender)
