@@ -70,7 +70,7 @@ object WatchAppFirestore {
                     "watchedSeries" to (user?.watchedTvSeriesCount?.toDouble() ?: 0.0),
                     "totalFavourites" to (user?.favouritesCount?.toDouble() ?: 0.0),
                     "totalRatings" to (user?.ratingsCount?.toDouble() ?: 0.0),
-                    "totalLists" to (user?.totalListCount?.toDouble()?.minus(3) ?: 0.0),
+                    "totalLists" to (user?.totalListCount?.toDouble() ?: 0.0),
                     "averageRating" to averageRating
                 )
             } catch (e: Exception) {
