@@ -19,7 +19,7 @@ object DataSeeder {
         favouritesCount = 0,
         ratingsCount = 0,
         totalListCount = 0,
-        moviesAddedToListsCount = 0,
+        //moviesAddedToListsCount = 0,
         averageRating = 0.0
     )
 

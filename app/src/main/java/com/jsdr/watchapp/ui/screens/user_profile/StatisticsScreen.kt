@@ -33,32 +33,25 @@ import com.jsdr.watchapp.ui.components.SpotifyScrollbar
 fun StatisticsScreen(
     navController: NavController
 ) {
-
     val gridState = rememberLazyGridState()
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBackground)
     ) {
-
         LazyVerticalGrid(
             state = gridState,
             columns = GridCells.Fixed(1),
-
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 20.dp),
-
             verticalArrangement = Arrangement.spacedBy(20.dp),
-
             contentPadding = PaddingValues(
                 top = 20.dp,
                 bottom = 120.dp,
                 end = 20.dp
             )
         ) {
-
             item {
 
                 androidx.compose.foundation.layout.Row(
@@ -85,44 +78,30 @@ fun StatisticsScreen(
                     )
                 }
             }
-
             item {
                 StatisticCard(
                     title = "Obejrzane filmy",
                     value = "0"
                 )
             }
-
             item {
                 StatisticCard(
                     title = "Obejrzane seriale",
                     value = "0"
                 )
             }
-
             item {
                 StatisticCard(
                     title = "Polubione",
                     value = "0"
                 )
             }
-
             item {
                 StatisticCard(
                     title = "Wystawione oceny",
                     value = "0"
                 )
             }
-
-            // dodałem żeby upenic sie działa scrollbara(możemy wyjebac kubuś)
-
-            item {
-                StatisticCard(
-                    title = "Dodane do list",
-                    value = "0"
-                )
-            }
-
             item {
                 StatisticCard(
                     title = "Średnia ocen",
@@ -137,7 +116,6 @@ fun StatisticsScreen(
                 )
             }
         }
-
         SpotifyScrollbar(
             gridState = gridState,
             modifier = Modifier
@@ -152,18 +130,14 @@ fun StatisticCard(
     title: String,
     value: String
 ) {
-
     androidx.compose.foundation.layout.Column {
-
         Text(
             text = title,
             color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold
         )
-
         Spacer(modifier = Modifier.height(10.dp))
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -173,7 +147,6 @@ fun StatisticCard(
 
             contentAlignment = Alignment.Center
         ) {
-
             Text(
                 text = value,
                 color = Color.White,

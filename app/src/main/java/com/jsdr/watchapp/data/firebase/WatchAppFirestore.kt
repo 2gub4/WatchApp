@@ -26,7 +26,6 @@ object WatchAppFirestore {
         return if (isMovie) "movie_$mediaId" else "tv_$mediaId"
     }
 
-
     object Users {
 
         suspend fun getCurrentUser(userId: String): User? {
@@ -58,21 +57,25 @@ object WatchAppFirestore {
 
         }
 
-        suspend fun getUserStats(userId: String): Map<String, Int> {
+        suspend fun getUserStats(userId: String): Map<String, Double> {
             return try {
                 val snap = firestoreDb.collection("users")
                     .document(userId)
                     .get()
                     .await()
-                val watchedMovies = snap.get("watchedMoviesCount") as? Int ?: 0
-                val watchedTvSeries = snap.get("watchedTvSeriesCount") as? Int ?: 0
-                val favourites = snap.get("favouritesCount") as? Int ?: 0
-                val ratings = snap.get("ratingsCount") as? Int ?: 0
+                val watchedMovies = snap.get("watchedMoviesCount") as? Double ?: 0.0
+                val watchedTvSeries = snap.get("watchedTvSeriesCount") as? Double ?: 0.0
+                val favourites = snap.get("favouritesCount") as? Double ?: 0.0
+                val ratings = snap.get("ratingsCount") as? Double ?: 0.0
+                val lists = snap.get("totalListCount") as? Double ?: 0.0
+                val averageRating = Ratings.getAverageRating(userId) ?: 0.0
                 mapOf(
                     "watchedMovies" to watchedMovies,
                     "watchedSeries" to watchedTvSeries,
                     "totalFavourites" to favourites,
-                    "totalRatings" to ratings
+                    "totalRatings" to ratings,
+                    "totalLists" to lists,
+                    "averageRating" to averageRating
                 )
             } catch (e: Exception) {
                 Log.e("Movie Firestore", "Could not get movies watched by user: $userId", e)
@@ -240,6 +243,22 @@ object WatchAppFirestore {
             batch.delete(ratingRef)
             batch.update(userRef, "ratingsCount", FieldValue.increment(-1))
             batch.commit().await()
+        }
+
+        suspend fun getAverageRating(userId: String): Double? {
+            return try {
+                val snap = firestoreDb.collection("users")
+                    .document(userId)
+                    .collection("ratings")
+                    .get()
+                    .await()
+                if (snap.isEmpty) return 0.0
+                val sum = snap.documents.sumOf { it.getDouble("overallRating") ?: 0.0 }
+                sum / snap.documents.size
+            } catch (e: Exception) {
+                Log.e("WatchApp Firestore", "Could not access user ratings of user $userId", e)
+                null
+            }
         }
     }
 
