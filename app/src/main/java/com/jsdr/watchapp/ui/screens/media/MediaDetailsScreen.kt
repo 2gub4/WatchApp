@@ -55,6 +55,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
+import com.jsdr.watchapp.data.firebase.WatchAppFirestore
 import com.jsdr.watchapp.data.repository.WatchAppRepository
 import com.jsdr.watchapp.ui.components.CircleMovieButton
 import com.jsdr.watchapp.ui.components.RatingRow
@@ -112,6 +113,10 @@ fun MediaDetailsScreen(
             "Liczba odcinków: ${state.profile.seriesDetails.numberOfEpisodes}"
 
         else -> "Brak informacji o odcinkach"
+    }
+    val runtime = when (val state = uiState) {
+        is MediaDetailsUiState.MovieSuccess -> state.profile.movieDetails.runtime
+        else -> "N/A"
     }
     val cast = when (val state = uiState) {
         is MediaDetailsUiState.MovieSuccess -> state.profile.getTop5Actors()
@@ -237,6 +242,14 @@ fun MediaDetailsScreen(
                             color = Color.White.copy(alpha = 0.7f),
                             fontSize = 16.sp
                         )
+                    }
+                    if (isMovie) {
+                        Text(
+                            text = "Czas trwania: $runtime min",
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 16.sp
+                        )
+                        Spacer(modifier = Modifier.height(14.dp))
                     }
                     Spacer(modifier = Modifier.height(14.dp))
                     if (!isMovie) {

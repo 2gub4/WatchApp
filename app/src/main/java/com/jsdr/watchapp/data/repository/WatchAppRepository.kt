@@ -22,7 +22,7 @@ object WatchAppRepository {
     const val POSTERS_BASE_URL = "https://image.tmdb.org/t/p/w500"
 
     object User {
-        suspend fun getUserStats(): Map<String, Int> {
+        suspend fun getUserStats(): Map<String, Double> /*change to ints in repository except for average rating*/ {
             return withContext(Dispatchers.IO) {
                 val stats = async { WatchAppFirestore.Users.getUserStats(CURRENT_USER) }
                 stats.await()

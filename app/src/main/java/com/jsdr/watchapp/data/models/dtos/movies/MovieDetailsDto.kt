@@ -16,5 +16,6 @@ data class MovieDetailsDto(
     @SerialName("release_date") val releaseDate: String,
     @SerialName("poster_path") val posterPath: String? = null,
     @SerialName("genres") val genres: List<GenreDto> = emptyList(),
+    @SerialName("runtime") val runtime: Int? = null,
     @SerialName("credits") val credits: CreditsDto,
 )
