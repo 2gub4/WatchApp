@@ -23,7 +23,7 @@ object DataSeeder {
         //averageRating = 0.0
     )
 
-    private val favouritesTemplate = UserList(
+    val favouritesTemplate = UserList(
         id = "favourites",
         name = "Ulubione",
         description = "Filmy i seriale, które wyjątkowo doceniłeś",
@@ -31,7 +31,7 @@ object DataSeeder {
         series = emptyList()
     )
 
-    private val bucketlistTemplate = UserList(
+    val bucketlistTemplate = UserList(
         id = "bucketlist",
         name = "Kupka Wstydu",
         description = "Filmy i seriale, które już dawno powinieneś był obejrzeć",
@@ -39,7 +39,7 @@ object DataSeeder {
         series = emptyList()
     )
 
-    private val watchedTemplate = UserList(
+    val watchedTemplate = UserList(
         id = "watched",
         name = "Obejrzane",
         description = "Filmy i seriale, które już obejrzałeś",

@@ -46,8 +46,17 @@ object WatchAppFirestore {
 
         suspend fun addUser(user: User) {
             try {
-                firestoreDb.collection("users").document(user.uid).set(user).await() }
-            catch (e: Exception) { Log.e("WatchAppFirestore", "Could not add user", e) }
+                val batch = firestoreDb.batch()
+                val userRef = firestoreDb.collection("users").document(user.uid)
+                batch.set(userRef, user)
+                val listsRef = userRef.collection("lists")
+                batch.set(listsRef.document(DataSeeder.favouritesTemplate.id), DataSeeder.favouritesTemplate)
+                batch.set(listsRef.document(DataSeeder.watchedTemplate.id), DataSeeder.watchedTemplate)
+                batch.set(listsRef.document(DataSeeder.bucketlistTemplate.id), DataSeeder.bucketlistTemplate)
+                batch.commit().await()
+            } catch (e: Exception) {
+                Log.e("WatchAppFirestore", "Error creating user with default lists", e)
+            }
         }
 
         suspend fun deleteUser(userId: String) {
@@ -144,7 +153,6 @@ object WatchAppFirestore {
     }
 
     object Lists {
-
         suspend fun createUserList(userId: String, newList: UserList) {
             val listsCollection = firestoreDb.collection("users").document(userId).collection("lists")
             val userRef = firestoreDb.collection("users").document(userId)
@@ -202,7 +210,7 @@ object WatchAppFirestore {
                 val result = firestoreDb.collection("users").document(userId)
                     .collection("ratings").document(docId).get().await()
                 result.toObject(Rating::class.java)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
         }

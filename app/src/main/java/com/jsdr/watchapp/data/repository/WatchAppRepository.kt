@@ -4,12 +4,14 @@ import android.util.Log
 import com.jsdr.watchapp.data.api.TmdbApiResult
 import com.jsdr.watchapp.data.api.TmdbApi
 import com.jsdr.watchapp.data.firebase.WatchAppFirestore
+import com.jsdr.watchapp.data.models.dtos.UserDto
 import com.jsdr.watchapp.domain.models.profiles.MovieProfile
 import com.jsdr.watchapp.data.models.dtos.movies.MovieDetailsDto
 import com.jsdr.watchapp.data.models.dtos.movies.MoviesPageDto
 import com.jsdr.watchapp.data.models.dtos.shows.TvSeriesDetailsDto
 import com.jsdr.watchapp.data.models.dtos.shows.TvSeriesPageDto
 import com.jsdr.watchapp.domain.models.profiles.TvSeriesProfile
+import com.jsdr.watchapp.data.models.entities.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
@@ -22,6 +24,19 @@ object WatchAppRepository {
     const val POSTERS_BASE_URL = "https://image.tmdb.org/t/p/w500"
 
     object User {
+
+        suspend fun addNewUser(userDto: UserDto) {
+            val newUser = User(
+                CURRENT_USER,
+                userDto.email,
+                userDto.username,
+                null,
+                userDto.birthYear,
+                userDto.gender,
+                userDto.pfpPath
+            )
+            WatchAppFirestore.Users.addUser(newUser)
+        }
 
         suspend fun getUser(userId: String = CURRENT_USER): com.jsdr.watchapp.data.models.entities.User? {
             return WatchAppFirestore.Users.getCurrentUser(userId)
