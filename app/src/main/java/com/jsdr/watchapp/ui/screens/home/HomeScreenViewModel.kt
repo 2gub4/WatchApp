@@ -31,8 +31,6 @@ data class HomeViewState(
 class HomeViewModel : ViewModel() {
 
     private val _viewState = MutableStateFlow(HomeViewState())
-
-
     private val todaysDate = LocalDate.now()
     val viewState: StateFlow<HomeViewState> = _viewState.asStateFlow()
 

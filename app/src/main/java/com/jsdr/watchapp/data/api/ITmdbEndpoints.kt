@@ -2,6 +2,7 @@ package com.jsdr.watchapp.data.api
 
 import com.jsdr.watchapp.data.models.dtos.movies.MovieDetailsDto
 import com.jsdr.watchapp.data.models.dtos.movies.MoviesPageDto
+import com.jsdr.watchapp.data.models.dtos.shared.MultiPageDto
 import com.jsdr.watchapp.data.models.dtos.shows.TvSeriesDetailsDto
 import com.jsdr.watchapp.data.models.dtos.shows.TvSeriesPageDto
 import retrofit2.http.GET
@@ -103,12 +104,12 @@ interface ITmdbEndpoints {
         @Query("include_adult") includeAdultContent: Boolean = false
     ): TvSeriesPageDto
 
-//    @GET("search/multi")
-//    suspend fun searchMulti(
-//        @Query("query") queryInput: String,
-//        @Query("page") page: Int,
-//        @Query("api_key") apiKey: String? = null,
-//        @Query("language") language: String? = null,
-//        @Query("include_adult") includeAdultContent: Boolean = false
-//    ): MultiPageDto
+    @GET("search/multi")
+    suspend fun searchMulti(
+        @Query("query") queryInput: String,
+        @Query("page") page: Int,
+        @Query("api_key") apiKey: String? = null,
+        @Query("language") language: String? = null,
+        @Query("include_adult") includeAdultContent: Boolean = false
+    ): MultiPageDto
 }
