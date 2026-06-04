@@ -68,7 +68,7 @@ fun ProfileScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(120.dp)
+                            .size(80.dp)
                             .clip(CircleShape)
                             .background(BrandPurple),
                         contentAlignment = Alignment.Center
@@ -81,7 +81,7 @@ fun ProfileScreen(
                     Text(
                         text = userProfile.username ?: "Nazwa użytkownika",
                         color = Color.White,
-                        fontSize = 28.sp,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable {
                             showUsernameDialog = true
@@ -123,13 +123,32 @@ fun ProfileScreen(
                         .clickable {
                             navController.navigate(Screen.Statistics.route)
                         }
-                        .padding(20.dp),
+                        .padding(14.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "Statystyki",
                         color = Color.White,
-                        fontSize = 22.sp,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color.Red.copy(alpha = 0.7f))
+                        .clickable {
+                        }
+                        .padding(14.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Wyloguj",
+                        color = Color.White,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -194,7 +213,7 @@ fun ProfileScreen(
                     Text(
                         text = "Pan",
                         color = Color.White,
-                        fontSize = 20.sp,
+                        fontSize = 14.sp,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
@@ -207,7 +226,7 @@ fun ProfileScreen(
                     Text(
                         text = "Pani",
                         color = Color.White,
-                        fontSize = 20.sp,
+                        fontSize = 14.sp,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
@@ -235,7 +254,7 @@ fun ProfileInfoItem(
             .clip(RoundedCornerShape(20.dp))
             .background(BrandPurple)
             .clickable { onClick() }
-            .padding(20.dp)
+            .padding(14.dp)
     ) {
         Text(
             text = title,
@@ -246,7 +265,7 @@ fun ProfileInfoItem(
         Text(
             text = value,
             color = Color.White,
-            fontSize = 20.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold
         )
     }
