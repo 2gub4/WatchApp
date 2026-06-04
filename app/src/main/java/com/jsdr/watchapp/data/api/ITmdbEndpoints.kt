@@ -47,7 +47,7 @@ interface ITmdbEndpoints {
     suspend fun getUpcomingMovies(
         @Query("page") page: Int,
         @Query("api_key") apiKey: String? = null,
-        @Query("language") language: String? = null,
+        @Query("language") language: String = "en-US",
         @Query("include_adult") includeAdultContent: Boolean = false,
         @Query("region") region: String? = null
     ): MoviesPageDto
