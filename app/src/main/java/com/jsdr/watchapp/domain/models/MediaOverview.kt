@@ -7,6 +7,7 @@ data class MediaOverview(
     val id: Int,
     val title: String,
     val posterPath: String?,
+    val releaseDate: String? = null,
     val isMovie: Boolean
 )
 
@@ -15,6 +16,7 @@ fun MovieOverviewDto.toDomain(): MediaOverview {
         id = this.id,
         title = this.title,
         posterPath = this.posterPath,
+        releaseDate = this.releaseDate,
         isMovie = true
     )
 }

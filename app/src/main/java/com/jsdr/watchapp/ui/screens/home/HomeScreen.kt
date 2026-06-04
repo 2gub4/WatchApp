@@ -230,27 +230,20 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel()
 ) {
-
     val gridState = rememberLazyGridState()
     val state by viewModel.viewState.collectAsState()
-
-    // USUNIĘTO: Lokalny mutableStateOf("popular"), teraz polegamy na ViewModelu
-
     Box(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp)
     ) {
-
         Column {
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-
                 CategoryButton(
                     title = "Filmy",
                     isSelected = state.areMoviesSelected,
@@ -258,7 +251,6 @@ fun HomeScreen(
                         viewModel.toggleMediaType(true)
                     }
                 )
-
                 CategoryButton(
                     title = "Seriale",
                     isSelected = !state.areMoviesSelected,
@@ -267,8 +259,6 @@ fun HomeScreen(
                     }
                 )
             }
-
-
             val categories = if (state.areMoviesSelected) {
                 mapOf(
                     "Popularne" to "popular",
@@ -283,14 +273,12 @@ fun HomeScreen(
                     "Najwyżej oceniane" to "top_rated",
                 )
             }
-
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 20.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-
                 items(categories.entries.toList()) { category ->
 
                     CategoryButton(
@@ -308,54 +296,40 @@ fun HomeScreen(
                     )
                 }
             }
-
             if (state.isLoadingFirstPage) {
-
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-
                     CircularProgressIndicator(
                         color = BrandPurple
                     )
                 }
-
             } else {
-
                 LazyVerticalGrid(
                     state = gridState,
                     columns = GridCells.Fixed(3),
-
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(end = 16.dp),
-
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
-
                     contentPadding = PaddingValues(
                         bottom = 20.dp
                     )
                 ) {
-
                     itemsIndexed(state.mediaList) { index, media ->
-
                         if (
                             index >= state.mediaList.size - 4 &&
                             !state.isLoadingNextPage
                         ) {
-
                             LaunchedEffect(index) {
                                 viewModel.loadNextPage()
                             }
                         }
-
                         MediaTile(
                             media = media,
-
                             onClick = {
-
                                 navController.navigate(
                                     Screen.MovieDetails.createRoute(
                                         media.id,
@@ -363,27 +337,21 @@ fun HomeScreen(
                                     )
                                 )
                             },
-
                             modifier = Modifier.aspectRatio(0.6f)
                         )
                     }
-
                     if (state.isLoadingNextPage) {
-
                         item(
                             span = {
                                 GridItemSpan(maxLineSpan)
                             }
                         ) {
-
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 16.dp),
-
                                 contentAlignment = Alignment.Center
                             ) {
-
                                 CircularProgressIndicator(
                                     color = BrandPurple
                                 )
@@ -393,7 +361,6 @@ fun HomeScreen(
                 }
             }
         }
-
         SpotifyScrollbar(
             gridState = gridState,
             modifier = Modifier

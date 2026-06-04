@@ -1,5 +1,6 @@
 package com.jsdr.watchapp.ui.screens.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jsdr.watchapp.data.repository.CURRENT_USER
@@ -11,6 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+
 
 data class HomeViewState(
     val currentUser: String = CURRENT_USER,
@@ -28,16 +31,35 @@ data class HomeViewState(
 class HomeViewModel : ViewModel() {
 
     private val _viewState = MutableStateFlow(HomeViewState())
+
+
+    private val todaysDate = LocalDate.now()
     val viewState: StateFlow<HomeViewState> = _viewState.asStateFlow()
 
-    init { loadInitialData() }
+    init { loadData() }
 
-    private fun loadInitialData() {
+    private fun loadData() {
         viewModelScope.launch {
             _viewState.update { it.copy(isLoadingFirstPage = true, error = null) }
             val state = _viewState.value
             try {
-                val newItems = fetchMediaPage(isMovies = state.areMoviesSelected, pageNumber = 1, state.selectedTab)
+                var newItems = fetchMediaPage(isMovies = state.areMoviesSelected, pageNumber = 1, state.selectedTab)
+                Log.d("HomeViewModelDebug", "Pobrano z API elementów: ${newItems.size}")
+                if (state.selectedTab == "upcoming") {
+                    newItems = newItems.filter { media ->
+                        if (media.releaseDate.isNullOrEmpty()) {
+                            false
+                        } else {
+                            try {
+                                val parsedDate = LocalDate.parse(media.releaseDate)
+                                val isFuture = parsedDate.isAfter(todaysDate)
+                                isFuture
+                            } catch (_: Exception) {
+                                false
+                            }
+                        }
+                    }
+                }
                 _viewState.update {
                     it.copy(
                         mediaList = newItems,
@@ -45,7 +67,8 @@ class HomeViewModel : ViewModel() {
                         isLoadingFirstPage = false
                     )
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                Log.e("HomeViewModelDebug", "Data fetching issue", e)
                 _viewState.update { it.copy(isLoadingFirstPage = false, error = "data fetching error") }
             }
         }
@@ -58,7 +81,21 @@ class HomeViewModel : ViewModel() {
             _viewState.update { it.copy(isLoadingNextPage = true) }
             val nextPage = state.pageNumber + 1
             try {
-                val newItems = fetchMediaPage(isMovies = state.areMoviesSelected, pageNumber = nextPage, state.selectedTab)
+                var newItems = fetchMediaPage(isMovies = state.areMoviesSelected, pageNumber = nextPage, state.selectedTab)
+                if (state.selectedTab == "upcoming") {
+                    newItems = newItems.filter { media ->
+                        if (media.releaseDate.isNullOrEmpty()) {
+                            false
+                        } else {
+                            try {
+                                val parsedDate = LocalDate.parse(media.releaseDate)
+                                parsedDate.isAfter(todaysDate)
+                            } catch (_: Exception) {
+                                false
+                            }
+                        }
+                    }
+                }
                 _viewState.update {
                     it.copy(
                         mediaList = it.mediaList + newItems,
@@ -66,7 +103,8 @@ class HomeViewModel : ViewModel() {
                         isLoadingNextPage = false
                     )
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "Error fetching next page", e)
                 _viewState.update { it.copy(isLoadingNextPage = false, error = "unable to load more data") }
             }
         }
@@ -77,28 +115,25 @@ class HomeViewModel : ViewModel() {
         _viewState.update {
             it.copy(
                 areMoviesSelected = showMovies,
-                selectedTab = "popular", // ZABEZPIECZENIE: Resetujemy zakładkę na domyślną przy zmianie trybu
+                selectedTab = "popular",
                 pageNumber = 1,
                 mediaList = emptyList(),
                 isLoadingFirstPage = true
             )
         }
-        loadInitialData()
+        loadData()
     }
-
-    // NOWA METODA: Obsługa wyboru zakładki
     fun setSelectedTab(tabValue: String) {
-        if (_viewState.value.selectedTab == tabValue) return // Ignorujemy kliknięcie w już aktywną zakładkę
-
+        if (_viewState.value.selectedTab == tabValue) return
         _viewState.update {
             it.copy(
                 selectedTab = tabValue,
-                pageNumber = 1, // Reset paginacji
-                mediaList = emptyList(), // Czyszczenie widoku przed załadowaniem nowych danych
+                pageNumber = 1,
+                mediaList = emptyList(),
                 isLoadingFirstPage = true
             )
         }
-        loadInitialData()
+        loadData()
     }
 
     private suspend fun fetchMediaPage(isMovies: Boolean, pageNumber: Int, pageType: String): List<MediaOverview> {
