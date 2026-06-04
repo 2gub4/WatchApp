@@ -146,12 +146,13 @@ fun MediaDetailsScreen(
         LazyVerticalGrid(
             state = gridState,
             columns = GridCells.Fixed(1),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier
-                .fillMaxSize(),
             contentPadding = PaddingValues(
-                bottom = 120.dp,
-                end = 20.dp
+                start = 12.dp,
+                end = 12.dp,
+                top = 12.dp,
+                bottom = 120.dp
             )
         ) {
 
@@ -404,12 +405,6 @@ fun MediaDetailsScreen(
                 }
             )
         }
-        SpotifyScrollbar(
-            gridState = gridState,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .fillMaxHeight()
-        )
     }
 }
 
