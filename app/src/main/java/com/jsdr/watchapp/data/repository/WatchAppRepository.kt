@@ -12,6 +12,8 @@ import com.jsdr.watchapp.data.models.dtos.shows.TvSeriesDetailsDto
 import com.jsdr.watchapp.data.models.dtos.shows.TvSeriesPageDto
 import com.jsdr.watchapp.domain.models.profiles.TvSeriesProfile
 import com.jsdr.watchapp.data.models.entities.User
+import com.jsdr.watchapp.data.models.entities.UserList
+import com.jsdr.watchapp.domain.models.MediaOverview
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
@@ -56,6 +58,64 @@ object WatchAppRepository {
                 "birthYear" -> WatchAppFirestore.Users.Updates.updateBirthYear(CURRENT_USER, newValue.toInt())
                 "email" -> WatchAppFirestore.Users.Updates.updateEmail(CURRENT_USER, newValue)
                 else -> throw Exception("Illegal argument: $subject")
+            }
+        }
+    }
+
+    object Lists {
+
+        suspend fun getUserLists(): List<UserList> {
+            return WatchAppFirestore.Users.getUserLists(CURRENT_USER)
+        }
+
+        suspend fun getListByName(listName: String): UserList? {
+            return getUserLists().find { it.name.equals(listName, ignoreCase = true) }
+        }
+
+        suspend fun createList(list: UserList) {
+            WatchAppFirestore.Lists.createUserList(CURRENT_USER, list)
+        }
+
+        suspend fun deleteList(listId: String) {
+            WatchAppFirestore.Lists.deleteUserList(CURRENT_USER, listId)
+        }
+
+        suspend fun removeMediaFromList(listId: String, mediaId: Int, isMovie: Boolean) {
+            WatchAppFirestore.Media.removeMediaFromList(CURRENT_USER, listId, mediaId, isMovie)
+        }
+
+        suspend fun getMediaOverviewsForList(userList: UserList): List<MediaOverview> {
+            return withContext(Dispatchers.IO) {
+                val moviesDeferred = userList.movies.map { movieId ->
+                    async {
+                        val details = Movies.getApiMovieDetails(movieId)
+                        details?.let {
+                            MediaOverview(
+                                id = it.id,
+                                title = it.title,
+                                posterPath = it.posterPath,
+                                releaseDate = it.releaseDate,
+                                isMovie = true
+                            )
+                        }
+                    }
+                }
+                val seriesDeferred = userList.series.map { seriesId ->
+                    async {
+                        val details = TvSeries.getApiTvSeriesDetails(seriesId)
+                        details?.let {
+                            MediaOverview(
+                                id = it.id,
+                                title = it.title,
+                                posterPath = it.posterPath,
+                                isMovie = false
+                            )
+                        }
+                    }
+                }
+                val movies = moviesDeferred.mapNotNull { it.await() }
+                val series = seriesDeferred.mapNotNull { it.await() }
+                movies + series
             }
         }
     }

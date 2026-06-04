@@ -3,6 +3,8 @@ package com.jsdr.watchapp.ui.screens.lists
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -15,105 +17,69 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-
 import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
-import com.jsdr.watchapp.data.models.entities.UserList
+import com.jsdr.watchapp.ui.components.ListButton
 import com.jsdr.watchapp.ui.navigation.Screen
 
 @Composable
-fun ListsScreen(navController: NavController) {
-
-    // LISTY DOMYŚLNE
-    val defaultLists = listOf(
-
-        UserList(
-            name = "Ulubione",
-            description = "Filmy które polubiłeś najbardziej"
-        ),
-
-        UserList(
-            name = "Do obejrzenia",
-            description = "Filmy do obejrzenia"
-        )
-    )
-
-    // LISTY UŻYTKOWNIKA
-    val movieLists = remember {
-        mutableStateListOf<UserList>()
-    }
-
+fun ListsScreen(
+    navController: NavController,
+    viewModel: ListsViewModel = viewModel()
+) {
+    val viewState by viewModel.viewState.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
-
-    var newListName by remember {
-        mutableStateOf("")
+    var newListName by remember { mutableStateOf("") }
+    var newListDescription by remember { mutableStateOf("") }
+    LaunchedEffect(Unit) {
+        viewModel.loadLists()
     }
-
-    var newListDescription by remember {
-        mutableStateOf("")
-    }
-
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().background(DarkBackground)
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 24.dp, vertical = 16.dp)
         ) {
-
             Text(
                 text = "Moje Listy",
                 color = Color.White,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
-
             Spacer(modifier = Modifier.height(20.dp))
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-
-                // DOMYŚLNE LISTY
-                defaultLists.forEach { list ->
-
-                    ListButton(
-                        UserList = list,
-                        onClick = {
-
-                            navController.navigate(
-                                Screen.ListDetails.createRoute(
-                                    list.name,
-                                    list.description ?: "no description"
-                                )
-                            )
-                        }
-                    )
+            if (viewState.isLoading) {
+                Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = BrandPurple)
                 }
-
-                // LISTY UŻYTKOWNIKA
-                movieLists.forEach { list ->
-
-                    ListButton(
-                        UserList = list,
-                        onClick = {
-
-                            navController.navigate(
-                                Screen.ListDetails.createRoute(
-                                    list.name,
-                                    list.description  ?: "no description"
+            } else if (viewState.error != null) {
+                Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                    Text(text = "Błąd: ${viewState.error}", color = Color.Red)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(viewState.usersLists) { list ->
+                        ListButton(
+                            userList = list,
+                            onClick = {
+                                navController.navigate(
+                                    Screen.ListDetails.createRoute(
+                                        list.name,
+                                        list.description ?: "no description"
+                                    )
                                 )
-                            )
-                        }
-                    )
+                            }
+                        )
+                    }
                 }
             }
         }
-
-        // FAB
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
@@ -121,13 +87,9 @@ fun ListsScreen(navController: NavController) {
                 .size(56.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(BrandPurple)
-                .clickable {
-                    showDialog = true
-                },
-
+                .clickable { showDialog = true },
             contentAlignment = Alignment.Center
         ) {
-
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = "Dodaj listę",
@@ -135,171 +97,71 @@ fun ListsScreen(navController: NavController) {
                 modifier = Modifier.size(32.dp)
             )
         }
-
-        // DIALOG
         if (showDialog) {
-
             AlertDialog(
-
-                onDismissRequest = {
-                    showDialog = false
-                },
-
+                onDismissRequest = { showDialog = false },
                 containerColor = DarkBackground,
-
-                title = {
-
-                    Text(
-                        text = "Nowa lista",
-                        color = Color.White
-                    )
-                },
-
+                title = { Text(text = "Nowa lista", color = Color.White) },
                 text = {
-
                     Column {
-
-                        // NAZWA
                         OutlinedTextField(
-
                             value = newListName,
-
-                            onValueChange = {
-                                newListName = it
-                            },
-
-                            label = {
-                                Text("Nazwa listy")
-                            },
-
+                            onValueChange = { newListName = it },
+                            label = { Text("Nazwa listy") },
                             singleLine = true,
-
                             modifier = Modifier.fillMaxWidth(),
-
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White,
                                 focusedBorderColor = BrandPurple,
-                                unfocusedBorderColor = Color.Gray,
                                 focusedLabelColor = BrandPurple,
-                                unfocusedLabelColor = Color.Gray,
                                 cursorColor = BrandPurple
                             )
                         )
-
                         Spacer(modifier = Modifier.height(16.dp))
-
-                        // OPIS
                         OutlinedTextField(
-
                             value = newListDescription,
-
-                            onValueChange = {
-                                newListDescription = it
-                            },
-
-                            label = {
-                                Text("Opis listy")
-                            },
-
+                            onValueChange = { newListDescription = it },
+                            label = { Text("Opis listy") },
                             modifier = Modifier.fillMaxWidth(),
-
                             minLines = 2,
                             maxLines = 3,
-
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White,
                                 focusedBorderColor = BrandPurple,
-                                unfocusedBorderColor = Color.Gray,
                                 focusedLabelColor = BrandPurple,
-                                unfocusedLabelColor = Color.Gray,
                                 cursorColor = BrandPurple
                             )
                         )
                     }
                 },
-
                 confirmButton = {
-
                     TextButton(
-
                         onClick = {
-
-                            if (
-                                newListName.isNotBlank() &&
-                                movieLists.none { it.name == newListName }
-                            ) {
-
-                                movieLists.add(
-
-                                    UserList(
-                                        name = newListName,
-                                        description = newListDescription
-                                    )
-                                )
+                            if (newListName.isNotBlank()) {
+                                viewModel.createList(newListName, newListDescription)
                             }
-
                             newListName = ""
                             newListDescription = ""
-
                             showDialog = false
                         }
                     ) {
-
-                        Text(
-                            text = "Utwórz",
-                            color = BrandPurple
-                        )
+                        Text(text = "Utwórz", color = BrandPurple)
                     }
                 },
-
                 dismissButton = {
-
                     TextButton(
-
                         onClick = {
-
                             newListName = ""
                             newListDescription = ""
-
                             showDialog = false
                         }
                     ) {
-
-                        Text(
-                            text = "Anuluj",
-                            color = Color.Gray
-                        )
+                        Text(text = "Anuluj", color = Color.Gray)
                     }
                 }
             )
         }
-    }
-}
-
-@Composable
-fun ListButton(
-    UserList: UserList,
-    onClick: () -> Unit
-) {
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
-            .background(BrandPurple)
-            .clickable {
-                onClick()
-            }
-            .padding(20.dp)
-    ) {
-
-        Text(
-            text = UserList.name,
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.SemiBold
-        )
     }
 }

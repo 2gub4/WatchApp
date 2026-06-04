@@ -1,7 +1,9 @@
 package com.jsdr.watchapp.domain.models
 
+import com.jsdr.watchapp.data.models.dtos.movies.MovieDetailsDto
 import com.jsdr.watchapp.data.models.dtos.movies.MovieOverviewDto
 import com.jsdr.watchapp.data.models.dtos.shared.MultiOverviewDto
+import com.jsdr.watchapp.data.models.dtos.shows.TvSeriesDetailsDto
 import com.jsdr.watchapp.data.models.dtos.shows.TvSeriesOverviewDto
 
 data class MediaOverview(
@@ -50,3 +52,18 @@ fun MultiOverviewDto.toDomain(): MediaOverview? {
         else -> null
     }
 }
+
+fun MovieDetailsDto.toOverview() = MediaOverview(
+    id = this.id,
+    title = this.title,
+    posterPath = this.posterPath,
+    releaseDate = this.releaseDate,
+    isMovie = true
+)
+
+fun TvSeriesDetailsDto.toOverview() = MediaOverview(
+    id = this.id,
+    title = this.title,
+    posterPath = this.posterPath,
+    isMovie = false
+)
