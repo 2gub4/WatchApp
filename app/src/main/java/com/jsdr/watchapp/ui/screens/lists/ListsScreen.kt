@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,7 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
-import com.jsdr.watchapp.ui.components.ListButton
+import com.jsdr.watchapp.data.models.entities.UserList
 import com.jsdr.watchapp.ui.navigation.Screen
 
 @Composable
@@ -30,53 +31,39 @@ fun ListsScreen(
     viewModel: ListsViewModel = viewModel()
 ) {
     val viewState by viewModel.viewState.collectAsState()
-    var showDialog by remember { mutableStateOf(false) }
+    var showAddDialog by remember { mutableStateOf(false) }
     var newListName by remember { mutableStateOf("") }
     var newListDescription by remember { mutableStateOf("") }
+    var listToDelete by remember { mutableStateOf<UserList?>(null) }
+
     LaunchedEffect(Unit) {
         viewModel.loadLists()
     }
-    Box(
-        modifier = Modifier.fillMaxSize().background(DarkBackground)
-    ) {
+
+    Box(modifier = Modifier.fillMaxSize().background(DarkBackground)) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 16.dp)
+            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 16.dp)
         ) {
-            Text(
-                text = "Moje Listy",
-                color = Color.White,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Text("Moje Listy", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(20.dp))
-            if (viewState.isLoading) {
-                Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = BrandPurple)
-                }
-            } else if (viewState.error != null) {
-                Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-                    Text(text = "Błąd: ${viewState.error}", color = Color.Red)
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(viewState.usersLists) { list ->
-                        ListButton(
-                            userList = list,
-                            onClick = {
-                                navController.navigate(
-                                    Screen.ListDetails.createRoute(
-                                        list.name,
-                                        list.description ?: "no description"
-                                    )
-                                )
-                            }
-                        )
-                    }
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(viewState.usersLists) { list ->
+                    val isDefault = list.id in listOf("favourites", "bucketlist", "watched")
+
+                    ListButton(
+                        userList = list,
+                        showOptions = !isDefault,
+                        onClick = {
+                            if (list.description.isNullOrBlank()) list.description = "Brak opisu"
+                            navController.navigate(Screen.ListDetails.createRoute(list.name, list.description!!))
+                        },
+                        onDeleteClick = {
+                            listToDelete = list
+                        }
+                    )
                 }
             }
         }
@@ -87,7 +74,7 @@ fun ListsScreen(
                 .size(56.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(BrandPurple)
-                .clickable { showDialog = true },
+                .clickable { showAddDialog = true },
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -97,11 +84,11 @@ fun ListsScreen(
                 modifier = Modifier.size(32.dp)
             )
         }
-        if (showDialog) {
+        if (showAddDialog) {
             AlertDialog(
-                onDismissRequest = { showDialog = false },
+                onDismissRequest = { showAddDialog = false },
                 containerColor = DarkBackground,
-                title = { Text(text = "Nowa lista", color = Color.White) },
+                title = { Text("Nowa lista", color = Color.White) },
                 text = {
                     Column {
                         OutlinedTextField(
@@ -137,31 +124,96 @@ fun ListsScreen(
                     }
                 },
                 confirmButton = {
-                    TextButton(
-                        onClick = {
-                            if (newListName.isNotBlank()) {
-                                viewModel.createList(newListName, newListDescription)
-                            }
-                            newListName = ""
-                            newListDescription = ""
-                            showDialog = false
+                    TextButton(onClick = {
+                        if (newListName.isNotBlank()) {
+                            viewModel.createList(newListName, newListDescription)
                         }
-                    ) {
-                        Text(text = "Utwórz", color = BrandPurple)
+                        newListName = ""
+                        newListDescription = ""
+                        showAddDialog = false
+                    }) {
+                        Text("Utwórz", color = BrandPurple)
                     }
                 },
                 dismissButton = {
-                    TextButton(
-                        onClick = {
-                            newListName = ""
-                            newListDescription = ""
-                            showDialog = false
-                        }
-                    ) {
-                        Text(text = "Anuluj", color = Color.Gray)
+                    TextButton(onClick = {
+                        newListName = ""
+                        newListDescription = ""
+                        showAddDialog = false
+                    }) {
+                        Text("Anuluj", color = Color.Gray)
                     }
                 }
             )
+        }
+        if (listToDelete != null) {
+            AlertDialog(
+                onDismissRequest = { listToDelete = null },
+                containerColor = DarkBackground,
+                title = { Text("Usuń listę", color = Color.White) },
+                text = { Text("Czy na pewno chcesz usunąć listę '${listToDelete?.name}'? Tej operacji nie można cofnąć.", color = Color.Gray) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        listToDelete?.let { viewModel.deleteList(it.id) }
+                        listToDelete = null
+                    }) {
+                        Text("Usuń", color = Color.Red)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { listToDelete = null }) {
+                        Text("Anuluj", color = Color.Gray)
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun ListButton(
+    userList: UserList,
+    showOptions: Boolean,
+    onClick: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(BrandPurple)
+            .clickable { onClick() }
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = userList.name,
+            color = Color.White,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.weight(1f)
+        )
+        if (showOptions) {
+            Box {
+                IconButton(onClick = { expanded = true }) {
+                    Icon(imageVector = Icons.Default.MoreVert, contentDescription = "Opcje", tint = Color.White)
+                }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.background(DarkBackground)
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Usuń listę", color = Color.Red) },
+                        onClick = {
+                            expanded = false
+                            onDeleteClick()
+                        }
+                    )
+                }
+            }
         }
     }
 }

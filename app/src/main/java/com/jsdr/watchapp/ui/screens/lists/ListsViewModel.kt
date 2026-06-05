@@ -28,7 +28,15 @@ class ListsViewModel : ViewModel() {
             _viewState.value = _viewState.value.copy(isLoading = true, error = null)
             try {
                 val lists = WatchAppRepository.Lists.getUserLists()
-                _viewState.value = _viewState.value.copy(isLoading = false, usersLists = lists)
+                val defaultOrder = listOf("favourites", "bucketlist", "watched")
+                val defaultLists = lists.filter { it.id in defaultOrder }
+                    .sortedBy { defaultOrder.indexOf(it.id) }
+                val customLists = lists.filter { it.id !in defaultOrder }
+                    .sortedBy { it.creationDate?.time ?: System.currentTimeMillis() }
+                _viewState.value = _viewState.value.copy(
+                    isLoading = false,
+                    usersLists = defaultLists + customLists
+                )
             } catch (e: Exception) {
                 _viewState.value = _viewState.value.copy(isLoading = false, error = e.message)
             }
@@ -39,7 +47,22 @@ class ListsViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val newList = UserList(name = name, description = description)
+                val currentLists = _viewState.value.usersLists.toMutableList()
+                currentLists.add(newList)
+                _viewState.value = _viewState.value.copy(usersLists = currentLists)
                 WatchAppRepository.Lists.createList(newList)
+                loadLists()
+            } catch (e: Exception) {
+                _viewState.value = _viewState.value.copy(error = e.message)
+            }
+        }
+    }
+
+    fun deleteList(listId: String) {
+        viewModelScope.launch {
+            try {
+                WatchAppRepository.Lists.deleteList(listId)
+                loadLists()
             } catch (e: Exception) {
                 _viewState.value = _viewState.value.copy(error = e.message)
             }

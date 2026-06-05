@@ -120,6 +120,12 @@ object WatchAppRepository {
         }
     }
 
+    // Needs changing to media!!!
+
+    suspend fun addMediaToList(listId: String, mediaId: Int, isMovie: Boolean) {
+        WatchAppFirestore.Media.addMediaToList(CURRENT_USER, listId, mediaId, isMovie)
+    }
+
     object Movies {
 
         suspend fun getApiMovieDetails(movieId: Int): MovieDetailsDto? {

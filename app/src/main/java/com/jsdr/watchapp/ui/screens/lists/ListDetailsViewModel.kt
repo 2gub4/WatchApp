@@ -14,6 +14,8 @@ data class ListDetailsViewState(
     val isLoading: Boolean = false,
     val listInfo: UserList? = null,
     val mediaItems: List<MediaOverview> = emptyList(),
+    val watchedMovieIds: Set<Int> = emptySet(),
+    val watchedSeriesIds: Set<Int> = emptySet(),
     val error: String? = null
 )
 
@@ -25,22 +27,45 @@ class ListDetailsViewModel : ViewModel() {
         viewModelScope.launch {
             _viewState.value = _viewState.value.copy(isLoading = true, error = null)
             try {
-                val fullList = WatchAppRepository.Lists.getListByName(listName)
+                val allLists = WatchAppRepository.Lists.getUserLists()
+                val fullList = allLists.find { it.name.equals(listName, ignoreCase = true) }
+                val watchedList = allLists.find { it.id == "watched" }
+
                 if (fullList != null) {
                     val media = WatchAppRepository.Lists.getMediaOverviewsForList(fullList)
                     _viewState.value = _viewState.value.copy(
                         isLoading = false,
                         listInfo = fullList,
-                        mediaItems = media
+                        mediaItems = media,
+                        watchedMovieIds = watchedList?.movies?.toSet() ?: emptySet(),
+                        watchedSeriesIds = watchedList?.series?.toSet() ?: emptySet()
                     )
                 } else {
-                    _viewState.value = _viewState.value.copy(
-                        isLoading = false,
-                        error = "Nie odnaleziono listy o nazwie: $listName"
-                    )
+                    _viewState.value = _viewState.value.copy(isLoading = false, error = "Brak listy")
                 }
             } catch (e: Exception) {
                 _viewState.value = _viewState.value.copy(isLoading = false, error = e.message)
+            }
+        }
+    }
+
+    fun toggleWatchedStatus(mediaId: Int, isMovie: Boolean) {
+        val isWatched = if (isMovie) _viewState.value.watchedMovieIds.contains(mediaId)
+        else _viewState.value.watchedSeriesIds.contains(mediaId)
+
+        viewModelScope.launch {
+            try {
+                if (isWatched) {
+                    WatchAppRepository.Lists.removeMediaFromList("watched", mediaId, isMovie)
+                    if (isMovie) _viewState.value = _viewState.value.copy(watchedMovieIds = _viewState.value.watchedMovieIds - mediaId)
+                    else _viewState.value = _viewState.value.copy(watchedSeriesIds = _viewState.value.watchedSeriesIds - mediaId)
+                } else {
+                    WatchAppRepository.addMediaToList("watched", mediaId, isMovie)
+                    if (isMovie) _viewState.value = _viewState.value.copy(watchedMovieIds = _viewState.value.watchedMovieIds + mediaId)
+                    else _viewState.value = _viewState.value.copy(watchedSeriesIds = _viewState.value.watchedSeriesIds + mediaId)
+                }
+            } catch (e: Exception) {
+                _viewState.value = _viewState.value.copy(error = e.message)
             }
         }
     }

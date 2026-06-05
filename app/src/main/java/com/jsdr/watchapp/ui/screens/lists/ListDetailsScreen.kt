@@ -5,12 +5,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,8 +27,10 @@ import androidx.navigation.NavController
 import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
 import com.jsdr.watchapp.data.models.entities.UserList
+import com.jsdr.watchapp.domain.models.MediaOverview
 import com.jsdr.watchapp.ui.components.ListTile
 import com.jsdr.watchapp.ui.navigation.Screen
+import androidx.compose.runtime.setValue
 
 @Composable
 fun ListDetailsScreen(
@@ -33,6 +39,7 @@ fun ListDetailsScreen(
     viewModel: ListDetailsViewModel = viewModel()
 ) {
     val viewState by viewModel.viewState.collectAsState()
+    var mediaToDelete by remember { mutableStateOf<MediaOverview?>(null) }
     LaunchedEffect(movieList.name) {
         viewModel.loadListDetails(movieList.name)
     }
@@ -114,23 +121,35 @@ fun ListDetailsScreen(
                     }
                 } else {
                     items(viewState.mediaItems) { media ->
+                        val isWatched = if (media.isMovie) viewState.watchedMovieIds.contains(media.id)
+                        else viewState.watchedSeriesIds.contains(media.id)
                         ListTile(
                             media = media,
-                            onClick = {
-                                navController.navigate(
-                                    Screen.MovieDetails.createRoute(
-                                        movieId = media.id,
-                                        isMovie = media.isMovie
-                                    )
-                                )
-                            },
-                            onDeleteClick = {
-                                viewModel.removeMediaFromList(media.id, media.isMovie)
-                            }
+                            isWatched = isWatched,
+                            onClick = { navController.navigate(Screen.MovieDetails.createRoute(media.id, media.isMovie)) },
+                            onToggleWatched = { viewModel.toggleWatchedStatus(media.id, media.isMovie) },
+                            onDeleteClick = { mediaToDelete = media }
                         )
                     }
                 }
             }
         }
+    }
+    if (mediaToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { },
+            containerColor = DarkBackground,
+            title = { Text("Usuń produkcję", color = Color.White) },
+            text = { Text("Usunąć '${mediaToDelete?.title}' z tej listy?", color = Color.Gray) },
+            confirmButton = {
+                TextButton(onClick = {
+                    mediaToDelete?.let { viewModel.removeMediaFromList(it.id, it.isMovie) }
+                    mediaToDelete = null
+                }) { Text("Usuń", color = Color.Red) }
+            },
+            dismissButton = {
+                TextButton(onClick = { }) { Text("Anuluj", color = Color.Gray) }
+            }
+        )
     }
 }
