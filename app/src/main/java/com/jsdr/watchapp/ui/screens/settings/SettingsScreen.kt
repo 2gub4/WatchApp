@@ -67,7 +67,9 @@ fun SettingsScreen(
     }
     if (showLanguageDialog) {
         AlertDialog(
-            onDismissRequest = { },
+            onDismissRequest = {
+                showLanguageDialog = false
+            },
             containerColor = DarkBackground,
             title = {
                 Text(
@@ -81,10 +83,12 @@ fun SettingsScreen(
                         text = "Polski",
                         color = Color.White,
                         fontSize = 20.sp,
-
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { }
+                            .clickable {
+                                language = "Polski"
+                                showLanguageDialog = false
+                            }
                             .padding(16.dp)
                     )
                     Spacer(modifier = Modifier.height(10.dp))
@@ -95,14 +99,19 @@ fun SettingsScreen(
 
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { }
+                            .clickable {
+                                language = "English"
+                                showLanguageDialog = false
+                            }
                             .padding(16.dp)
                     )
                 }
             },
             confirmButton = {
                 TextButton(
-                    onClick = { }
+                    onClick = {
+                        showLanguageDialog = false
+                    }
                 ) {
                     Text(
                         text = "OK",
