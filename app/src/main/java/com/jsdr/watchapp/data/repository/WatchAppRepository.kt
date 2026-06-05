@@ -4,12 +4,16 @@ import android.util.Log
 import com.jsdr.watchapp.data.api.TmdbApiResult
 import com.jsdr.watchapp.data.api.TmdbApi
 import com.jsdr.watchapp.data.firebase.WatchAppFirestore
+import com.jsdr.watchapp.data.models.dtos.UserDto
 import com.jsdr.watchapp.domain.models.profiles.MovieProfile
 import com.jsdr.watchapp.data.models.dtos.movies.MovieDetailsDto
 import com.jsdr.watchapp.data.models.dtos.movies.MoviesPageDto
 import com.jsdr.watchapp.data.models.dtos.shows.TvSeriesDetailsDto
 import com.jsdr.watchapp.data.models.dtos.shows.TvSeriesPageDto
 import com.jsdr.watchapp.domain.models.profiles.TvSeriesProfile
+import com.jsdr.watchapp.data.models.entities.User
+import com.jsdr.watchapp.data.models.entities.UserList
+import com.jsdr.watchapp.domain.models.MediaOverview
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
@@ -22,6 +26,19 @@ object WatchAppRepository {
     const val POSTERS_BASE_URL = "https://image.tmdb.org/t/p/w500"
 
     object User {
+
+        suspend fun addNewUser(userDto: UserDto) {
+            val newUser = User(
+                CURRENT_USER,
+                userDto.email,
+                userDto.username,
+                null,
+                userDto.birthYear,
+                userDto.gender,
+                userDto.pfpPath
+            )
+            WatchAppFirestore.Users.addUser(newUser)
+        }
 
         suspend fun getUser(userId: String = CURRENT_USER): com.jsdr.watchapp.data.models.entities.User? {
             return WatchAppFirestore.Users.getCurrentUser(userId)
@@ -43,6 +60,70 @@ object WatchAppRepository {
                 else -> throw Exception("Illegal argument: $subject")
             }
         }
+    }
+
+    object Lists {
+
+        suspend fun getUserLists(): List<UserList> {
+            return WatchAppFirestore.Users.getUserLists(CURRENT_USER)
+        }
+
+        suspend fun getListByName(listName: String): UserList? {
+            return getUserLists().find { it.name.equals(listName, ignoreCase = true) }
+        }
+
+        suspend fun createList(list: UserList) {
+            WatchAppFirestore.Lists.createUserList(CURRENT_USER, list)
+        }
+
+        suspend fun deleteList(listId: String) {
+            WatchAppFirestore.Lists.deleteUserList(CURRENT_USER, listId)
+        }
+
+        suspend fun removeMediaFromList(listId: String, mediaId: Int, isMovie: Boolean) {
+            WatchAppFirestore.Media.removeMediaFromList(CURRENT_USER, listId, mediaId, isMovie)
+        }
+
+        suspend fun getMediaOverviewsForList(userList: UserList): List<MediaOverview> {
+            return withContext(Dispatchers.IO) {
+                val moviesDeferred = userList.movies.map { movieId ->
+                    async {
+                        val details = Movies.getApiMovieDetails(movieId)
+                        details?.let {
+                            MediaOverview(
+                                id = it.id,
+                                title = it.title,
+                                posterPath = it.posterPath,
+                                releaseDate = it.releaseDate,
+                                isMovie = true
+                            )
+                        }
+                    }
+                }
+                val seriesDeferred = userList.series.map { seriesId ->
+                    async {
+                        val details = TvSeries.getApiTvSeriesDetails(seriesId)
+                        details?.let {
+                            MediaOverview(
+                                id = it.id,
+                                title = it.title,
+                                posterPath = it.posterPath,
+                                isMovie = false
+                            )
+                        }
+                    }
+                }
+                val movies = moviesDeferred.mapNotNull { it.await() }
+                val series = seriesDeferred.mapNotNull { it.await() }
+                movies + series
+            }
+        }
+    }
+
+    // Needs changing to media!!!
+
+    suspend fun addMediaToList(listId: String, mediaId: Int, isMovie: Boolean) {
+        WatchAppFirestore.Media.addMediaToList(CURRENT_USER, listId, mediaId, isMovie)
     }
 
     object Movies {

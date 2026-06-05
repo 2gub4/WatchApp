@@ -26,7 +26,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.jsdr.watchapp.data.firebase.DataSeeder
+//import com.jsdr.watchapp.data.firebase.DataSeeder
 
 val DarkBackground = Color(0xFF212121)
 val BrandPurple = Color(0xFF7F52FF)
@@ -102,13 +102,10 @@ fun WatchApp() {
                 SettingsScreen(navController = navController)
             }
             composable(Screen.ListDetails.route) { backStackEntry ->
-
                 val listName =
                     backStackEntry.arguments?.getString("listName") ?: "Lista"
-
                 val listDescription =
-                    backStackEntry.arguments?.getString("listDescription") ?: ""
-
+                    backStackEntry.arguments?.getString("listDescription") ?: "Brak Opisu"
                 ListDetailsScreen(
                     movieList = UserList(
                         name = listName,

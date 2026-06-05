@@ -3,7 +3,6 @@ package com.jsdr.watchapp.ui.screens.user_profile
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jsdr.watchapp.data.firebase.WatchAppFirestore
 import com.jsdr.watchapp.data.models.entities.User
 import com.jsdr.watchapp.data.repository.WatchAppRepository
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -35,20 +35,16 @@ fun ProfileScreen(
     viewModel: UserProfileViewModel = viewModel()
 ) {
     val userProfile by viewModel.userProfileState.collectAsState()
-
     var showUsernameDialog by remember { mutableStateOf(false) }
     var showEmailDialog by remember { mutableStateOf(false) }
     var showBirthDialog by remember { mutableStateOf(false) }
     var showGenderDialog by remember { mutableStateOf(false) }
-
     val listState = rememberLazyListState()
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp)
     ) {
-
         LazyColumn(
             state = listState,
             modifier = Modifier
@@ -60,7 +56,6 @@ fun ProfileScreen(
                 bottom = 120.dp
             )
         ) {
-
             item {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -75,9 +70,7 @@ fun ProfileScreen(
                     ) {
                         Text(text = "👤", fontSize = 50.sp)
                     }
-
                     Spacer(modifier = Modifier.height(20.dp))
-
                     Text(
                         text = userProfile.username ?: "Nazwa użytkownika",
                         color = Color.White,
@@ -89,7 +82,6 @@ fun ProfileScreen(
                     )
                 }
             }
-
             item {
                 ProfileInfoItem(
                     title = "Email",
@@ -97,7 +89,6 @@ fun ProfileScreen(
                     onClick = { showEmailDialog = true }
                 )
             }
-
             item {
                 ProfileInfoItem(
                     title = "Rok urodzenia",
@@ -105,7 +96,6 @@ fun ProfileScreen(
                     onClick = { showBirthDialog = true }
                 )
             }
-
             item {
                 ProfileInfoItem(
                     title = "Płeć",
@@ -113,7 +103,6 @@ fun ProfileScreen(
                     onClick = { showGenderDialog = true }
                 )
             }
-
             item {
                 Box(
                     modifier = Modifier
@@ -154,7 +143,6 @@ fun ProfileScreen(
                 }
             }
         }
-
         SpotifyScrollbarList(
             listState = listState,
             modifier = Modifier
@@ -162,48 +150,37 @@ fun ProfileScreen(
                 .fillMaxHeight()
         )
     }
-
     if (showUsernameDialog) {
         EditDialog(
             title = "Nazwa użytkownika",
             currentValue = userProfile.username ?: "",
-            onDismiss = { showUsernameDialog = false },
-            onConfirm = {
-                viewModel.updateUserField("username", it)
-                showUsernameDialog = false
-            }
+            onConfirm = { viewModel.updateUserField("username", it) },
+            onDismiss = { }
         )
     }
-
     if (showEmailDialog) {
         EditDialog(
             title = "Email",
             currentValue = userProfile.email ?: "",
-            onDismiss = { showEmailDialog = false },
-            onConfirm = {
-                viewModel.updateUserField("email", it)
-                showEmailDialog = false
-            }
+            onConfirm = { viewModel.updateUserField("email", it) },
+            onDismiss = { }
         )
     }
-
     if (showBirthDialog) {
         EditDialog(
             title = "Rok urodzenia",
             currentValue = userProfile.birthYear?.toString() ?: "",
-            onDismiss = { showBirthDialog = false },
             onConfirm = {
                 if (it.toIntOrNull() != null) {
                     viewModel.updateUserField("birthYear", it)
                 }
-                showBirthDialog = false
-            }
+            },
+            onDismiss = { }
         )
     }
-
     if (showGenderDialog) {
         AlertDialog(
-            onDismissRequest = { showGenderDialog = false },
+            onDismissRequest = { },
             containerColor = DarkBackground,
             title = {
                 Text(text = "Wybierz płeć", color = Color.White)
@@ -216,10 +193,7 @@ fun ProfileScreen(
                         fontSize = 14.sp,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                viewModel.updateUserField("gender", "Pan")
-                                showGenderDialog = false
-                            }
+                            .clickable { viewModel.updateUserField("gender", "Pan") }
                             .padding(16.dp)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -229,10 +203,7 @@ fun ProfileScreen(
                         fontSize = 14.sp,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                viewModel.updateUserField("gender", "Pani")
-                                showGenderDialog = false
-                            }
+                            .clickable { viewModel.updateUserField("gender", "Pani") }
                             .padding(16.dp)
                     )
                 }

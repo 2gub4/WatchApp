@@ -1,126 +1,155 @@
 package com.jsdr.watchapp.ui.screens.lists
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.jsdr.watchapp.BrandPurple
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import com.jsdr.watchapp.data.models.entities.UserList
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.Alignment
 import com.jsdr.watchapp.DarkBackground
+import com.jsdr.watchapp.data.models.entities.UserList
+import com.jsdr.watchapp.domain.models.MediaOverview
+import com.jsdr.watchapp.ui.components.ListTile
 import com.jsdr.watchapp.ui.navigation.Screen
+import androidx.compose.runtime.setValue
+
 @Composable
 fun ListDetailsScreen(
     movieList: UserList,
-    navController: NavController
+    navController: NavController,
+    viewModel: ListDetailsViewModel = viewModel()
 ) {
+    val viewState by viewModel.viewState.collectAsState()
+    var mediaToDelete by remember { mutableStateOf<MediaOverview?>(null) }
+    LaunchedEffect(movieList.name) {
+        viewModel.loadListDetails(movieList.name)
+    }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBackground)
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp)
     ) {
-
-        // GÓRA
-        Row(
-            verticalAlignment = Alignment.CenterVertically
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(20.dp)
         ) {
-
-            Text(
-                text = "←",
-                color = BrandPurple,
-                fontSize = 30.sp,
-                modifier = Modifier
-                    .clickable {
-                        navController.popBackStack()
-                    }
-                    .padding(end = 16.dp)
-            )
-
-            Text(
-                text = movieList.name,
-                color = Color.White,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // OPIS LISTY
-        Text(
-            text = movieList.description ?: "no description",
-            color = Color.White.copy(alpha = 0.7f),
-            fontSize = 14.sp
-        )
-
-        Spacer(modifier = Modifier.height(30.dp))
-
-        // FILMY W LIŚCIE
-        repeat(5) { index ->
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(90.dp)
-                    .padding(bottom = 16.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .border(
-                        2.dp,
-                        BrandPurple,
-                        RoundedCornerShape(18.dp)
-                    )
-                    .clickable {
-
-                        navController.navigate(
-                            Screen.MovieDetails.createRoute(
-                                1234567 + index,
-                                true
-                            )
-                        )
-                    }
-                    .padding(20.dp)
-            ) {
-
-                Column {
-
+            item {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = "Film ${index + 1}",
+                        text = "←",
+                        color = BrandPurple,
+                        fontSize = 30.sp,
+                        modifier = Modifier
+                            .clickable {
+                                navController.popBackStack()
+                            }
+                            .padding(end = 16.dp)
+                    )
+                    Text(
+                        text = movieList.name,
                         color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold
                     )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = movieList.description ?: "Brak opisu",
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 14.sp
+                )
+                Spacer(modifier = Modifier.height(30.dp))
+            }
+            if (viewState.isLoading) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = BrandPurple)
+                    }
+                }
+            }
+            viewState.error?.let { errorMsg ->
+                item {
                     Text(
-                        text = "Krótki opis filmu",
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 13.sp
+                        text = "Wystąpił błąd: $errorMsg",
+                        color = Color.Red,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        textAlign = TextAlign.Center
                     )
                 }
             }
+            if (!viewState.isLoading && viewState.error == null) {
+                if (viewState.mediaItems.isEmpty()) {
+                    item {
+                        Text(
+                            text = "Ta lista jest obecnie pusta. Dodaj filmy lub seriale, aby je tutaj zobaczyć!",
+                            color = Color.Gray,
+                            fontSize = 15.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 40.dp)
+                        )
+                    }
+                } else {
+                    items(viewState.mediaItems) { media ->
+                        val isWatched = if (media.isMovie) viewState.watchedMovieIds.contains(media.id)
+                        else viewState.watchedSeriesIds.contains(media.id)
+                        ListTile(
+                            media = media,
+                            isWatched = isWatched,
+                            onClick = { navController.navigate(Screen.MovieDetails.createRoute(media.id, media.isMovie)) },
+                            onToggleWatched = { viewModel.toggleWatchedStatus(media.id, media.isMovie) },
+                            onDeleteClick = { mediaToDelete = media }
+                        )
+                    }
+                }
+            }
         }
+    }
+    if (mediaToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { },
+            containerColor = DarkBackground,
+            title = { Text("Usuń produkcję", color = Color.White) },
+            text = { Text("Usunąć '${mediaToDelete?.title}' z tej listy?", color = Color.Gray) },
+            confirmButton = {
+                TextButton(onClick = {
+                    mediaToDelete?.let { viewModel.removeMediaFromList(it.id, it.isMovie) }
+                    mediaToDelete = null
+                }) { Text("Usuń", color = Color.Red) }
+            },
+            dismissButton = {
+                TextButton(onClick = { }) { Text("Anuluj", color = Color.Gray) }
+            }
+        )
     }
 }

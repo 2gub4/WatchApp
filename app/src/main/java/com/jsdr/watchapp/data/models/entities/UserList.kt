@@ -7,7 +7,7 @@ import java.util.Date
 data class UserList(
     @DocumentId val id: String = "",
     val name: String = "",
-    val description: String? = null,
+    var description: String? = null,
     val movies: List<Int> = emptyList(),
     val series: List<Int> = emptyList(),
     @ServerTimestamp val creationDate: Date? = null,
