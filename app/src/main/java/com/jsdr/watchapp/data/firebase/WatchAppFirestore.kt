@@ -3,7 +3,6 @@ package com.jsdr.watchapp.data.firebase
 import android.util.Log
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.snapshots
 import com.google.firebase.firestore.SetOptions
@@ -16,11 +15,6 @@ import kotlinx.coroutines.tasks.await
 
 object WatchAppFirestore {
     val firestoreDb by lazy { Firebase.firestore }
-
-    private fun updateCounter(batch: WriteBatch, userId: String, counter: String /*can be changed to enum*/, increment: Boolean) {
-        val userProfileRef = firestoreDb.collection("users").document(userId)
-        batch.update(userProfileRef, "${counter}Count", FieldValue.increment(1))
-    }
 
     private fun getRatingId(mediaId: Int, isMovie: Boolean): String {
         return if (isMovie) "movie_$mediaId" else "tv_$mediaId"
@@ -173,14 +167,15 @@ object WatchAppFirestore {
                 throw Exception("Illegal Action! Cannot delete default lists")
             }
             try {
-                val batch = firestoreDb.batch()
                 val listRef = firestoreDb.collection("users").document(userId).collection("lists").document(listId)
                 val userRef = firestoreDb.collection("users").document(userId)
-
-                batch.delete(listRef)
-                batch.update(userRef, "totalListCount", FieldValue.increment(-1))
-
-                batch.commit().await()
+                firestoreDb.runTransaction { transaction ->
+                    val snapshot = transaction.get(listRef)
+                    if (snapshot.exists()) {
+                        transaction.delete(listRef)
+                        transaction.update(userRef, "totalListCount", FieldValue.increment(-1L))
+                    }
+                }.await()
             } catch (e: Exception) {
                 Log.e("WatchApp Firestore", "Could not delete user list", e)
             }
@@ -225,10 +220,28 @@ object WatchAppFirestore {
                         throw Exception("Rating for this media already exists! Use update instead.")
                     }
                     transaction.set(ratingRef, rating)
-                    transaction.update(userRef, "ratingsCount", FieldValue.increment(1))
+                    transaction.update(userRef, "ratingsCount", FieldValue.increment(1L))
                 }.await()
             } catch (e: Exception) {
                 Log.e("MovieFirestore", "Could not add media rating", e)
+                throw e
+            }
+        }
+
+        suspend fun deleteMediaRating(userId: String, mediaId: Int, isMovie: Boolean) {
+            val docId = getRatingId(mediaId, isMovie)
+            val ratingRef = firestoreDb.collection("users").document(userId).collection("ratings").document(docId)
+            val userRef = firestoreDb.collection("users").document(userId)
+            try {
+                firestoreDb.runTransaction { transaction ->
+                    val snapshot = transaction.get(ratingRef)
+                    if (snapshot.exists()) {
+                        transaction.delete(ratingRef)
+                        transaction.update(userRef, "ratingsCount", FieldValue.increment(-1L))
+                    }
+                }.await()
+            } catch (e: Exception) {
+                Log.e("WatchAppFirestore", "Could not delete media rating", e)
                 throw e
             }
         }
@@ -237,16 +250,6 @@ object WatchAppFirestore {
             val docId = getRatingId(mediaId, isMovie)
             val ratingRef = firestoreDb.collection("users").document(userId).collection("ratings").document(docId)
             ratingRef.set(newRating, SetOptions.merge()).await()
-        }
-
-        suspend fun deleteMediaRating(userId: String, mediaId: Int, isMovie: Boolean) {
-            val docId = getRatingId(mediaId, isMovie)
-            val batch = firestoreDb.batch()
-            val ratingRef = firestoreDb.collection("users").document(userId).collection("ratings").document(docId)
-            val userRef = firestoreDb.collection("users").document(userId)
-            batch.delete(ratingRef)
-            batch.update(userRef, "ratingsCount", FieldValue.increment(-1))
-            batch.commit().await()
         }
 
         suspend fun getAverageRating(userId: String): Double? {
@@ -275,21 +278,56 @@ object WatchAppFirestore {
             val userRef = firestoreDb.collection("users").document(userId)
             val listRef = userRef.collection("lists").document(listId)
             val arrayField = if (isMovie) "movies" else "series"
-            val batch = firestoreDb.batch()
-            batch.update(listRef, arrayField, FieldValue.arrayUnion(mediaId))
-            when (listId) {
-                "watched" -> {
-                    val counterField = if (isMovie) "watchedMoviesCount" else "watchedTvSeriesCount"
-                    batch.update(userRef, counterField, FieldValue.increment(1L))
-                }
-                "favourites" -> {
-                    batch.update(userRef, "favouritesCount", FieldValue.increment(1L))
-                }
-            }
             try {
-                batch.commit().await()
+                firestoreDb.runTransaction { transaction ->
+                    val listSnapshot = transaction.get(listRef)
+                    val currentArray = listSnapshot.get(arrayField) as? List<Number> ?: emptyList()
+                    val isAlreadyInList = currentArray.any { it.toInt() == mediaId }
+                    if (!isAlreadyInList) {
+                        transaction.update(listRef, arrayField, FieldValue.arrayUnion(mediaId))
+                        when (listId) {
+                            "watched" -> {
+                                val counterField = if (isMovie) "watchedMoviesCount" else "watchedTvSeriesCount"
+                                transaction.update(userRef, counterField, FieldValue.increment(1L))
+                            }
+                            "favourites" -> {
+                                transaction.update(userRef, "favouritesCount", FieldValue.increment(1L))
+                            }
+                        }
+                    }
+                }.await()
             } catch (e: Exception) {
                 Log.e("WatchAppFirestore", "Could not add media to list: $listId", e)
+                throw e
+            }
+        }
+
+        suspend fun removeMediaFromList(userId: String, listId: String, mediaId: Int, isMovie: Boolean) {
+            val userRef = firestoreDb.collection("users").document(userId)
+            val listRef = userRef.collection("lists").document(listId)
+            val arrayField = if (isMovie) "movies" else "series"
+
+            try {
+                firestoreDb.runTransaction { transaction ->
+                    val listSnapshot = transaction.get(listRef)
+                    val currentArray = listSnapshot.get(arrayField) as? List<Number> ?: emptyList()
+                    val isInList = currentArray.any { it.toInt() == mediaId }
+                    if (isInList) {
+                        transaction.update(listRef, arrayField, FieldValue.arrayRemove(mediaId))
+                        when (listId) {
+                            "watched" -> {
+                                val counterField = if (isMovie) "watchedMoviesCount" else "watchedTvSeriesCount"
+                                transaction.update(userRef, counterField, FieldValue.increment(-1L))
+                            }
+                            "favourites" -> {
+                                transaction.update(userRef, "favouritesCount", FieldValue.increment(-1L))
+                            }
+                        }
+                    }
+                }.await()
+            } catch (e: Exception) {
+                Log.e("WatchAppFirestore", "Could not remove media from list: $listId", e)
+                throw e
             }
         }
 
@@ -299,29 +337,6 @@ object WatchAppFirestore {
             if (snap.isEmpty) throw Exception("No list with name '$listName' in database!")
             val listId = snap.documents[0].id
             addMediaToList(userId, listId, mediaId, isMovie)
-        }
-
-        suspend fun removeMediaFromList(userId: String, listId: String, mediaId: Int, isMovie: Boolean) {
-            val userRef = firestoreDb.collection("users").document(userId)
-            val listRef = userRef.collection("lists").document(listId)
-            val arrayField = if (isMovie) "movies" else "series"
-            val batch = firestoreDb.batch()
-            batch.update(listRef, arrayField, FieldValue.arrayRemove(mediaId))
-            when (listId) {
-                "watched" -> {
-                    val counterField = if (isMovie) "watchedMoviesCount" else "watchedTvSeriesCount"
-                    batch.update(userRef, counterField, FieldValue.increment(-1L))
-                }
-                "favourites" -> {
-                    batch.update(userRef, "favouritesCount", FieldValue.increment(-1L))
-                }
-            }
-            try {
-                batch.commit().await()
-            } catch (e: Exception) {
-                Log.e("WatchAppFirestore", "Could not remove media from list: $listId", e)
-                throw e
-            }
         }
 
         suspend fun removeMediaFromListByName(userId: String, listName: String, mediaId: Int, isMovie: Boolean) {
