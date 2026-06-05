@@ -143,12 +143,6 @@ fun ProfileScreen(
                 }
             }
         }
-//        SpotifyScrollbarList(
-//            listState = listState,
-//            modifier = Modifier
-//                .align(Alignment.TopEnd)
-//                .fillMaxHeight()
-//        )
     }
     if (showUsernameDialog) {
         EditDialog(

@@ -22,36 +22,16 @@ import androidx.navigation.NavController
 import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.ui.components.SpotifyScrollbar
 import com.jsdr.watchapp.ui.navigation.Screen
-
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.jsdr.watchapp.domain.models.MediaOverview
+import com.jsdr.watchapp.ui.components.MediaTile
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 @Composable
 fun SearchScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: SearchScreenViewModel = viewModel()
 ) {
-
-    var searchText by remember {
-        mutableStateOf("")
-    }
-    /// testy kubuś nie wkurwiaj sie
-    val movies = listOf(
-        "Interstellar",
-        "Breaking Bad",
-        "Fight Club",
-        "The Batman",
-        "The Office",
-        "Dark",
-        "Joker",
-        "Inception",
-        "Avatar",
-        "Shrek",
-        "Stranger Things",
-        "Peaky Blinders",
-        "The Matrix"
-    )
-
-    val filteredMovies = movies.filter {
-        it.contains(searchText, ignoreCase = true)
-    }
-
+    val uiState by viewModel.uiState.collectAsState()
     val gridState = rememberLazyGridState()
 
     Box(
@@ -59,41 +39,31 @@ fun SearchScreen(
             .fillMaxSize()
             .padding(horizontal = 12.dp)
     ) {
-
         LazyVerticalGrid(
-            columns = GridCells.Fixed(1),
+            columns = GridCells.Fixed(3),
             state = gridState,
-
             modifier = Modifier
                 .fillMaxSize()
                 .padding(end = 18.dp),
-
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
             contentPadding = PaddingValues(
                 top = 12.dp,
                 bottom = 24.dp
             )
         ) {
-
-            item {
-
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 OutlinedTextField(
-                    value = searchText,
+                    value = uiState.query,
                     onValueChange = {
-                        searchText = it
+                        viewModel.onQueryChange(it)
                     },
-
                     placeholder = {
                         Text("Wyszukaj film lub serial")
                     },
-
                     modifier = Modifier.fillMaxWidth(),
-
                     singleLine = true,
-
                     shape = RoundedCornerShape(18.dp),
-
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = BrandPurple,
                         unfocusedBorderColor = BrandPurple,
@@ -105,49 +75,24 @@ fun SearchScreen(
                     )
                 )
             }
-
-            items(filteredMovies.size) { index ->
-
-                val movie = filteredMovies[index].length * 123 + index
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(BrandPurple)
-                        .clickable {
-
-                            navController.navigate(
-                                Screen.MovieDetails.createRoute(movie, true)
+            items(uiState.results.size) { index ->
+                val media = uiState.results[index]
+                MediaTile(
+                    media = media,
+                    onClick = {
+                        navController.navigate(
+                            Screen.MovieDetails.createRoute(
+                                media.id,
+                                media.isMovie
                             )
-                        }
-                        .padding(16.dp)
-                ) {
-
-                    Column {
-
-                        Text(
-                            text = movie.toString(),
-                            color = Color.White,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold
                         )
-
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        Text(
-                            text = "Kliknij aby otworzyć profil",
-                            color = Color.White.copy(alpha = 0.8f),
-                            fontSize = 12.sp
-                        )
-                    }
-                }
+                    },
+                    modifier = Modifier.aspectRatio(0.6f)
+                )
             }
         }
-
         SpotifyScrollbar(
             gridState = gridState,
-
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .fillMaxHeight()

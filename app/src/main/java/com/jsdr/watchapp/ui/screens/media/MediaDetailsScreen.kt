@@ -15,10 +15,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.HistoryToggleOff
 import androidx.compose.material.icons.filled.MoreTime
@@ -58,6 +61,7 @@ import com.jsdr.watchapp.DarkBackground
 import com.jsdr.watchapp.R
 import com.jsdr.watchapp.data.repository.WatchAppRepository
 import com.jsdr.watchapp.ui.components.RatingRow
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 
 @Composable
 fun MediaDetailsScreen(
@@ -158,14 +162,27 @@ fun MediaDetailsScreen(
             )
         ) {
 
-            item {
-                Text(
-                    text = "←",
-                    color = Color.White,
-                    fontSize = 30.sp,
-                    modifier = Modifier
-                        .clickable { navController.popBackStack() }
-                )
+                item {
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .offset(x = (-8).dp)
+                    ) {
+
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                            contentDescription = "Powrót",
+                            tint = Color.White,
+
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clickable {
+                                    navController.popBackStack()
+                                }
+                        )
+                    }
+
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -31,7 +32,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
 import com.jsdr.watchapp.ui.components.SpotifyScrollbar
-
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material3.Icon
 @Composable
 fun StatisticsScreen(
     navController: NavController,
@@ -62,15 +65,17 @@ fun StatisticsScreen(
                 androidx.compose.foundation.layout.Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "←",
-                        color = BrandPurple,
-                        fontSize = 32.sp,
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                        contentDescription = "Powrót",
+                        tint = BrandPurple,
+
                         modifier = Modifier
+                            .size(32.dp)
                             .clickable {
                                 navController.popBackStack()
                             }
-                            .padding(end = 16.dp)
+                            .padding(end = 8.dp)
                     )
 
                     Text(

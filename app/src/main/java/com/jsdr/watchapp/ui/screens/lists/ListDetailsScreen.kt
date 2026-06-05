@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
@@ -31,7 +32,8 @@ import com.jsdr.watchapp.domain.models.MediaOverview
 import com.jsdr.watchapp.ui.components.ListTile
 import com.jsdr.watchapp.ui.navigation.Screen
 import androidx.compose.runtime.setValue
-
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material3.Icon
 @Composable
 fun ListDetailsScreen(
     movieList: UserList,
@@ -57,15 +59,17 @@ fun ListDetailsScreen(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "←",
-                        color = BrandPurple,
-                        fontSize = 30.sp,
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                        contentDescription = "Powrót",
+                        tint = BrandPurple,
+
                         modifier = Modifier
+                            .size(32.dp)
                             .clickable {
                                 navController.popBackStack()
                             }
-                            .padding(end = 16.dp)
+                            .padding(end = 8.dp)
                     )
                     Text(
                         text = movieList.name,
