@@ -50,8 +50,8 @@ fun ListsScreen(
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(viewState.usersLists.filter { it.id != "watched" }) { list ->
-                    val isDefault = list.id in listOf("favourites", "bucketlist"/*, "watched"*/)
+                items(viewState.usersLists/*.filter { it.id != "watched" }*/) { list ->
+                    val isDefault = list.id in listOf("favourites", "bucketlist", "watched")
                     ListButton(
                         userList = list,
                         showOptions = !isDefault,

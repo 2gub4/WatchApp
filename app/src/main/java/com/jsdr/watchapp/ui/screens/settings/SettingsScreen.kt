@@ -22,33 +22,25 @@ import com.jsdr.watchapp.DarkBackground
 fun SettingsScreen(
     navController: NavController
 ) {
-
     var language by remember {
         mutableStateOf("Polski")
     }
-
     var showLanguageDialog by remember {
         mutableStateOf(false)
     }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBackground)
             .padding(20.dp)
     ) {
-
         Text(
             text = "Ustawienia",
             color = Color.White,
             fontSize = 30.sp,
             fontWeight = FontWeight.Bold
         )
-
         Spacer(modifier = Modifier.height(30.dp))
-
-        // JĘZYK
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -59,15 +51,12 @@ fun SettingsScreen(
                 }
                 .padding(20.dp)
         ) {
-
             Text(
                 text = "Język",
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 14.sp
             )
-
             Spacer(modifier = Modifier.height(8.dp))
-
             Text(
                 text = language,
                 color = Color.White,
@@ -76,29 +65,18 @@ fun SettingsScreen(
             )
         }
     }
-
-    // DIALOG
-
     if (showLanguageDialog) {
-
         AlertDialog(
-            onDismissRequest = {
-                showLanguageDialog = false
-            },
-
+            onDismissRequest = { },
             containerColor = DarkBackground,
-
             title = {
                 Text(
                     text = "Wybierz język",
                     color = Color.White
                 )
             },
-
             text = {
-
                 Column {
-
                     Text(
                         text = "Polski",
                         color = Color.White,
@@ -106,15 +84,10 @@ fun SettingsScreen(
 
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                language = "Polski"
-                                showLanguageDialog = false
-                            }
+                            .clickable { }
                             .padding(16.dp)
                     )
-
                     Spacer(modifier = Modifier.height(10.dp))
-
                     Text(
                         text = "English",
                         color = Color.White,
@@ -122,23 +95,15 @@ fun SettingsScreen(
 
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                language = "English"
-                                showLanguageDialog = false
-                            }
+                            .clickable { }
                             .padding(16.dp)
                     )
                 }
             },
-
             confirmButton = {
-
                 TextButton(
-                    onClick = {
-                        showLanguageDialog = false
-                    }
+                    onClick = { }
                 ) {
-
                     Text(
                         text = "OK",
                         color = BrandPurple

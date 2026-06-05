@@ -98,7 +98,7 @@ fun SpotifyScrollbar(
         )
     }
 }
-/// wersja do każdej karty(bo chuj wie nie działa i chuj)
+
 @Composable
 fun SpotifyScrollbar(
     listState: LazyListState,
@@ -114,8 +114,6 @@ fun SpotifyScrollbar(
         label = "scrollbar_width"
     )
 
-    val coroutineScope = rememberCoroutineScope()
-
     val layoutInfo = listState.layoutInfo
     val totalItemsCount = layoutInfo.totalItemsCount
 
@@ -129,7 +127,6 @@ fun SpotifyScrollbar(
 
     val scrollProportion =
         if (totalItemsCount > visibleItemsCount) {
-
             firstVisibleItemIndex.toFloat() /
                     (totalItemsCount - visibleItemsCount).toFloat()
 
@@ -142,23 +139,17 @@ fun SpotifyScrollbar(
             .coerceIn(0.1f, 1f)
 
     BoxWithConstraints(
-
         modifier = modifier
             .width(32.dp)
 
     ) {
-
         val trackHeight = maxHeight.value
-
         val thumbHeight =
             max(trackHeight * thumbSizeProportion, 30f).dp
-
         val maxOffsetY = maxHeight - thumbHeight
-
         val offsetY =
             (maxOffsetY * scrollProportion)
                 .coerceIn(0.dp, maxOffsetY)
-
         Box(
             modifier = Modifier
                 .offset(y = offsetY)

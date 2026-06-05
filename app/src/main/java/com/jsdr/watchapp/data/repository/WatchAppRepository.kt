@@ -44,7 +44,7 @@ object WatchAppRepository {
             return WatchAppFirestore.Users.getCurrentUser(userId)
         }
 
-        suspend fun getUserStats(): Map<String, Double> /*change to ints in repository except for average rating*/ {
+        suspend fun getUserStats(): Map<String, Double> {
             return withContext(Dispatchers.IO) {
                 val stats = async { WatchAppFirestore.Users.getUserStats(CURRENT_USER) }
                 stats.await()
@@ -66,10 +66,6 @@ object WatchAppRepository {
 
         suspend fun getUserLists(): List<UserList> {
             return WatchAppFirestore.Users.getUserLists(CURRENT_USER)
-        }
-
-        suspend fun getListByName(listName: String): UserList? {
-            return getUserLists().find { it.name.equals(listName, ignoreCase = true) }
         }
 
         suspend fun createList(list: UserList) {

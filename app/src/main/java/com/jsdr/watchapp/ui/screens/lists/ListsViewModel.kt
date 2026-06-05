@@ -28,11 +28,10 @@ class ListsViewModel : ViewModel() {
             _viewState.value = _viewState.value.copy(isLoading = true, error = null)
             try {
                 val lists = WatchAppRepository.Lists.getUserLists()
-                val defaultOrder = listOf("favourites", "bucketlist"/*, "watched"*/)
+                val defaultOrder = listOf("favourites", "bucketlist", "watched")
                 val defaultLists = lists
                     .filter {
                         it.id in defaultOrder
-                        it.id != "watched"
                     }
                     .sortedBy {
                         defaultOrder.indexOf(it.id)

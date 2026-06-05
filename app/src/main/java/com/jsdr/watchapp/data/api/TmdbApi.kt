@@ -11,11 +11,15 @@ import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 
+sealed class TmdbApiResult<out T> {
+    data class OnSuccess<out T>(val data: T) : TmdbApiResult<T>()
+    data class OnFailure(val error: Throwable) : TmdbApiResult<Nothing>()
+}
+
 object TmdbApi {
     private const val API_KEY = "7a0cf0cb349b8912480426231b4faf51"
     private const val BASE_URL = "https://api.themoviedb.org/3/"
 
-    private const val LANG_EN = "en-US"
     private const val LANG_PL = "pl-PL"
 
     private val jsonParser = Json {
@@ -108,9 +112,5 @@ object TmdbApi {
                 }
             }
         }
-    }
-
-    suspend fun mapToGeneralOverview() {
-        // needs moving to repository
     }
 }

@@ -23,8 +23,7 @@ fun CategoryButton(
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-
-    cornerSize: Int = 50,
+    cornerSize: Int,
     horizontalPadding: Int = 20,
     verticalPadding: Int = 10
 ) {

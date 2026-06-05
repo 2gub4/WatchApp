@@ -282,79 +282,79 @@ fun EditDialog(
     )
 }
 
-@SuppressLint("UnusedBoxWithConstraintsScope")
-@Composable
-fun SpotifyScrollbarList(
-    listState: androidx.compose.foundation.lazy.LazyListState,
-    modifier: Modifier = Modifier
-) {
-    var isDragging by remember { mutableStateOf(false) }
-
-    val thumbWidth by animateDpAsState(
-        targetValue = if (isDragging) 8.dp else 4.dp,
-        label = ""
-    )
-
-    val coroutineScope = rememberCoroutineScope()
-
-    val layoutInfo = listState.layoutInfo
-    val totalItemsCount = layoutInfo.totalItemsCount
-
-    if (totalItemsCount == 0) return
-
-    val firstVisibleItemIndex = listState.firstVisibleItemIndex
-    val visibleItemsCount = layoutInfo.visibleItemsInfo.size
-
-    val scrollProportion =
-        if (totalItemsCount > visibleItemsCount) {
-            firstVisibleItemIndex.toFloat() /
-                    (totalItemsCount - visibleItemsCount).toFloat()
-        } else 0f
-
-    val thumbSizeProportion =
-        (visibleItemsCount.toFloat() / totalItemsCount.toFloat())
-            .coerceIn(0.1f, 1f)
-
-    BoxWithConstraints(
-        modifier = modifier
-            .width(32.dp)
-            .pointerInput(Unit) {
-                detectVerticalDragGestures(
-                    onDragStart = { isDragging = true },
-                    onDragEnd = { isDragging = false },
-                    onDragCancel = { isDragging = false }
-                ) { change, dragAmount ->
-                    change.consume()
-                    coroutineScope.launch {
-                        val scrollMultiplier =
-                            if (visibleItemsCount > 0) {
-                                (totalItemsCount.toFloat() / visibleItemsCount) * 1.5f
-                            } else {
-                                5f
-                            }
-                        listState.scrollBy(dragAmount * scrollMultiplier)
-                    }
-                }
-            }
-    ) {
-        val trackHeight = maxHeight.value
-        val thumbHeight = max(trackHeight * thumbSizeProportion, 30f).dp
-        val maxOffsetY = maxHeight - thumbHeight
-
-        val offsetY =
-            (maxOffsetY * scrollProportion)
-                .coerceIn(0.dp, maxOffsetY)
-
-        Box(
-            modifier = Modifier
-                .offset(y = offsetY)
-                .width(thumbWidth)
-                .height(thumbHeight)
-                .clip(RoundedCornerShape(50))
-                .background(
-                    if (isDragging) Color.White else BrandPurple
-                )
-                .align(Alignment.TopEnd)
-        )
-    }
-}
+//@SuppressLint("UnusedBoxWithConstraintsScope")
+//@Composable
+//fun SpotifyScrollbarList(
+//    listState: androidx.compose.foundation.lazy.LazyListState,
+//    modifier: Modifier = Modifier
+//) {
+//    var isDragging by remember { mutableStateOf(false) }
+//
+//    val thumbWidth by animateDpAsState(
+//        targetValue = if (isDragging) 8.dp else 4.dp,
+//        label = ""
+//    )
+//
+//    val coroutineScope = rememberCoroutineScope()
+//
+//    val layoutInfo = listState.layoutInfo
+//    val totalItemsCount = layoutInfo.totalItemsCount
+//
+//    if (totalItemsCount == 0) return
+//
+//    val firstVisibleItemIndex = listState.firstVisibleItemIndex
+//    val visibleItemsCount = layoutInfo.visibleItemsInfo.size
+//
+//    val scrollProportion =
+//        if (totalItemsCount > visibleItemsCount) {
+//            firstVisibleItemIndex.toFloat() /
+//                    (totalItemsCount - visibleItemsCount).toFloat()
+//        } else 0f
+//
+//    val thumbSizeProportion =
+//        (visibleItemsCount.toFloat() / totalItemsCount.toFloat())
+//            .coerceIn(0.1f, 1f)
+//
+//    BoxWithConstraints(
+//        modifier = modifier
+//            .width(32.dp)
+//            .pointerInput(Unit) {
+//                detectVerticalDragGestures(
+//                    onDragStart = { isDragging = true },
+//                    onDragEnd = { isDragging = false },
+//                    onDragCancel = { isDragging = false }
+//                ) { change, dragAmount ->
+//                    change.consume()
+//                    coroutineScope.launch {
+//                        val scrollMultiplier =
+//                            if (visibleItemsCount > 0) {
+//                                (totalItemsCount.toFloat() / visibleItemsCount) * 1.5f
+//                            } else {
+//                                5f
+//                            }
+//                        listState.scrollBy(dragAmount * scrollMultiplier)
+//                    }
+//                }
+//            }
+//    ) {
+//        val trackHeight = maxHeight.value
+//        val thumbHeight = max(trackHeight * thumbSizeProportion, 30f).dp
+//        val maxOffsetY = maxHeight - thumbHeight
+//
+//        val offsetY =
+//            (maxOffsetY * scrollProportion)
+//                .coerceIn(0.dp, maxOffsetY)
+//
+//        Box(
+//            modifier = Modifier
+//                .offset(y = offsetY)
+//                .width(thumbWidth)
+//                .height(thumbHeight)
+//                .clip(RoundedCornerShape(50))
+//                .background(
+//                    if (isDragging) Color.White else BrandPurple
+//                )
+//                .align(Alignment.TopEnd)
+//        )
+//    }
+//}

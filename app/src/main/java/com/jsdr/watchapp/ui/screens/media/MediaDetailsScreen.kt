@@ -61,7 +61,6 @@ import com.jsdr.watchapp.DarkBackground
 import com.jsdr.watchapp.R
 import com.jsdr.watchapp.data.repository.WatchAppRepository
 import com.jsdr.watchapp.ui.components.RatingRow
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
 
 @Composable
 fun MediaDetailsScreen(

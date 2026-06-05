@@ -22,15 +22,12 @@ fun RatingRow(
 ) {
 
     Column {
-
         Text(
             text = title,
             color = Color.White,
             fontSize = 16.sp
         )
-
         Spacer(modifier = Modifier.height(6.dp))
-
         Row {
 
             for (i in 1..5) {
@@ -41,13 +38,10 @@ fun RatingRow(
                     fontSize = 24.sp,
                     modifier = Modifier
                         .padding(end = 6.dp)
-                        .clickable {
-                            onRatingChange(i)
-                        }
+                        .clickable { onRatingChange(i) }
                 )
             }
         }
-
         Spacer(modifier = Modifier.height(12.dp))
     }
 }

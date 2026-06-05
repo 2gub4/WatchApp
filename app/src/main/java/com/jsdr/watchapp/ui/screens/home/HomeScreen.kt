@@ -44,6 +44,7 @@ fun HomeScreen(
                 CategoryButton(
                     title = "Filmy",
                     isSelected = state.areMoviesSelected,
+                    cornerSize = 30,
                     onClick = {
                         viewModel.toggleMediaType(true)
                     }
@@ -51,6 +52,7 @@ fun HomeScreen(
                 CategoryButton(
                     title = "Seriale",
                     isSelected = !state.areMoviesSelected,
+                    cornerSize = 30,
                     onClick = {
                         viewModel.toggleMediaType(false)
                     }
