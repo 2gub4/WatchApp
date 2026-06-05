@@ -16,17 +16,21 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreTime
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.Icon
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -157,14 +161,25 @@ fun MediaDetailsScreen(
         ) {
 
             item {
-                Text(
-                    text = "←",
-                    color = Color.White,
-                    fontSize = 30.sp,
+
+                Row(
                     modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .clickable { navController.popBackStack() }
-                )
+                        .fillMaxWidth()
+                        .offset(x = (-8).dp)
+                ) {
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                        contentDescription = "Powrót",
+                        tint = Color.White,
+
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clickable {
+                                navController.popBackStack()
+                            }
+                    )
+                }
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
