@@ -48,9 +48,9 @@ fun ProfileScreen(
         LazyColumn(
             state = listState,
             modifier = Modifier
-                .fillMaxSize()
-                .padding(end = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(18.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = PaddingValues(
                 top = 20.dp,
                 bottom = 120.dp
@@ -143,12 +143,12 @@ fun ProfileScreen(
                 }
             }
         }
-        SpotifyScrollbarList(
-            listState = listState,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .fillMaxHeight()
-        )
+//        SpotifyScrollbarList(
+//            listState = listState,
+//            modifier = Modifier
+//                .align(Alignment.TopEnd)
+//                .fillMaxHeight()
+//        )
     }
     if (showUsernameDialog) {
         EditDialog(

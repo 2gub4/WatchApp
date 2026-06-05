@@ -178,7 +178,7 @@ object WatchAppFirestore {
                 val userRef = firestoreDb.collection("users").document(userId)
 
                 batch.delete(listRef)
-                batch.update(userRef, "totalListCount", FieldValue.increment(-1)) // Zmniejszamy licznik
+                batch.update(userRef, "totalListCount", FieldValue.increment(-1))
 
                 batch.commit().await()
             } catch (e: Exception) {
@@ -290,7 +290,6 @@ object WatchAppFirestore {
                 batch.commit().await()
             } catch (e: Exception) {
                 Log.e("WatchAppFirestore", "Could not add media to list: $listId", e)
-                throw e
             }
         }
 

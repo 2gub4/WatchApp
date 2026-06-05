@@ -23,6 +23,20 @@ object DataSeeder {
         //averageRating = 0.0
     )
 
+    private val mediaForSeeding: Map<Int, Boolean> = mapOf(
+        1339713 to true,
+        1304313 to true,
+        687163 to true,
+        1083381 to true,
+        1226863 to true,
+        124364 to false,
+        76479 to false,
+        220102 to false,
+        1399 to false,
+        1911 to false,
+        95479 to false
+    )
+
     val favouritesTemplate = UserList(
         id = "favourites",
         name = "Ulubione",
@@ -84,7 +98,11 @@ object DataSeeder {
         WatchAppFirestore.Users.Updates.updateEmail(testUsr.uid, "newtest@email-example.com")
     }
 
-    suspend fun testAddingTvSeries() {
-        WatchAppFirestore.Media.addMediaToList(testUsr.uid, "watched", 1396, false)
+    suspend fun seedMedia() {
+        for (media in mediaForSeeding) {
+            WatchAppFirestore.Media.addMediaToList(testUsr.uid, "favourites", media.key, media.value)
+            WatchAppFirestore.Media.addMediaToList(testUsr.uid, "bucketlist", media.key, media.value)
+            WatchAppFirestore.Media.addMediaToList(testUsr.uid, "watched", media.key, media.value)
+        }
     }
 }

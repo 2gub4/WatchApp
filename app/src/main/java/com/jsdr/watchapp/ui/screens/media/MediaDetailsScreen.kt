@@ -1,10 +1,8 @@
 package com.jsdr.watchapp.ui.screens.media
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import com.jsdr.watchapp.ui.components.SpotifyScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,16 +15,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreTime
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.AddCircle
+//import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -55,9 +51,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
-import com.jsdr.watchapp.data.firebase.WatchAppFirestore
 import com.jsdr.watchapp.data.repository.WatchAppRepository
-import com.jsdr.watchapp.ui.components.CircleMovieButton
 import com.jsdr.watchapp.ui.components.RatingRow
 
 @Composable
@@ -284,12 +278,17 @@ fun MediaDetailsScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
+                            // tutaj wprowadzić kontrolowanie stanu
                             Icon(
                                 imageVector = Icons.Default.Favorite,
                                 contentDescription = "Ulubione",
                                 tint = BrandPurple
                             )
-
+//                            Icon(
+//                                imageVector = Icons.Default.VisibilityOff,
+//                                contentDescription = "Niewidoczne",
+//                                tint = BrandPurple
+//                            )
                             Icon(
                                 imageVector = Icons.Default.MoreTime,
                                 contentDescription = "Do obejrzenia",

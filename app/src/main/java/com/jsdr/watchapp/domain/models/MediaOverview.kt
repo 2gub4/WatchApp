@@ -11,6 +11,7 @@ data class MediaOverview(
     val title: String,
     val posterPath: String?,
     val releaseDate: String? = null,
+    val originCountry: String? = null,
     val isMovie: Boolean
 )
 
@@ -58,6 +59,7 @@ fun MovieDetailsDto.toOverview() = MediaOverview(
     title = this.title,
     posterPath = this.posterPath,
     releaseDate = this.releaseDate,
+    originCountry = this.originalCountry[0].lowercase(),
     isMovie = true
 )
 

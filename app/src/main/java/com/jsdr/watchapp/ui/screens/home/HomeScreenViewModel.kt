@@ -51,7 +51,7 @@ class HomeViewModel : ViewModel() {
                             try {
                                 val parsedDate = LocalDate.parse(media.releaseDate)
                                 val isFuture = parsedDate.isAfter(todaysDate)
-                                isFuture
+                                isFuture /*&& media.originCountry in listOf("pl", "us", "gb")*/
                             } catch (_: Exception) {
                                 false
                             }
@@ -87,7 +87,7 @@ class HomeViewModel : ViewModel() {
                         } else {
                             try {
                                 val parsedDate = LocalDate.parse(media.releaseDate)
-                                parsedDate.isAfter(todaysDate)
+                                parsedDate.isAfter(todaysDate)  /*&& media.originCountry in listOf("pl", "us", "gb")*/
                             } catch (_: Exception) {
                                 false
                             }

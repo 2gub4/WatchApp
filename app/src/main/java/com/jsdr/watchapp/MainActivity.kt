@@ -43,11 +43,12 @@ class MainActivity : ComponentActivity() {
                     color = DarkBackground
                 ) {
                     WatchApp()
-//                    LaunchedEffect(Unit) {
-//                        //DataSeeder.performInitialSeeding()
-//                        //DataSeeder.testUserDataUpdates()
-//                        //DataSeeder.testAddingTvSeries()
-//                    }
+                    LaunchedEffect(Unit) {
+                        //DataSeeder.performInitialSeeding()
+                        //DataSeeder.testUserDataUpdates()
+                        //DataSeeder.testAddingTvSeries()
+                        //DataSeeder.seedMedia()
+                    }
                 }
             }
         }
