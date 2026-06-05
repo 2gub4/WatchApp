@@ -177,7 +177,7 @@ object WatchAppFirestore {
                     }
                 }.await()
             } catch (e: Exception) {
-                Log.e("WatchApp Firestore", "Could not delete user list", e)
+                Log.e("WatchApp Firestore", "Could not delete user list with id: $listId", e)
             }
         }
 
@@ -190,7 +190,7 @@ object WatchAppFirestore {
                     .whereArrayContains(arrayField, mediaId)
                     .get()
                     .await()
-                snapshot.documents.mapNotNull { it.getString("name") }
+                snapshot.documents.map { it.id }
             } catch (e: Exception) {
                 Log.e("WatchAppFirestore", "Could not receive Lists", e)
                 emptyList()

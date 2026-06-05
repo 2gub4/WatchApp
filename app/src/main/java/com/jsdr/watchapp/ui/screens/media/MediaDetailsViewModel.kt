@@ -3,6 +3,7 @@ package com.jsdr.watchapp.ui.screens.media
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jsdr.watchapp.data.models.entities.UserList
 import com.jsdr.watchapp.data.repository.WatchAppRepository
 import com.jsdr.watchapp.domain.models.profiles.MovieProfile
 import com.jsdr.watchapp.domain.models.profiles.TvSeriesProfile
@@ -20,22 +21,43 @@ sealed interface MediaDetailsUiState {
     data class Error(val message: String) : MediaDetailsUiState
 }
 
+data class SelectableList(
+    val listId: String,
+    val name: String,
+    val containsMedia: Boolean
+)
+
+data class UserMediaInteractionState(
+    val isFavorite: Boolean = false,
+    val isWatched: Boolean = false,
+    val isInBucketlist: Boolean = false,
+    val customLists: List<SelectableList> = emptyList()
+)
+
 class MediaDetailsViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow<MediaDetailsUiState>(MediaDetailsUiState.Loading)
     val uiState: StateFlow<MediaDetailsUiState> = _uiState.asStateFlow()
 
-    fun loadProfile(mediaId: Int, isMovie: Boolean) {
+    private val _interactionState = MutableStateFlow(UserMediaInteractionState())
+    val interactionState: StateFlow<UserMediaInteractionState> = _interactionState.asStateFlow()
+
+    fun loadProfile(mediaId: Int, isMovie: Boolean, showLoadingLayout: Boolean = true) {
         viewModelScope.launch {
-            _uiState.value = MediaDetailsUiState.Loading
+            if (showLoadingLayout) {
+                _uiState.value = MediaDetailsUiState.Loading
+            }
             try {
                 withTimeout(10_000L) {
+                    // Pobieramy wszystkie listy zdefiniowane przez użytkownika
+                    val allUserLists = WatchAppRepository.Lists.getUserLists()
+
                     if (isMovie) {
                         Log.d("MediaDetails", "trying to get details of movie with id: $mediaId")
                         val profile = WatchAppRepository.Movies.getMovieProfile(mediaId)
                         if (profile != null) {
-                            Log.d("MediaDetails", "successfully received movie data: ${profile.movieDetails.title}")
                             _uiState.value = MediaDetailsUiState.MovieSuccess(profile)
+                            updateInteractionState(profile.containingLists, allUserLists)
                         } else {
                             Log.e("MediaDetails", "no data for movie.")
                             _uiState.value = MediaDetailsUiState.Error("Nie udało się pobrać filmu.")
@@ -44,8 +66,8 @@ class MediaDetailsViewModel : ViewModel() {
                         Log.d("MediaDetails", "trying to get details of tv show with id: $mediaId")
                         val profile = WatchAppRepository.TvSeries.getTvSeriesProfile(mediaId)
                         if (profile != null) {
-                            Log.d("MediaDetails", "successfully received tv show data: ${profile.seriesDetails.title}")
                             _uiState.value = MediaDetailsUiState.TvSuccess(profile)
+                            updateInteractionState(profile.containingLists, allUserLists)
                         } else {
                             Log.e("MediaDetails", "no data for tv series.")
                             _uiState.value = MediaDetailsUiState.Error("Nie udało się pobrać serialu.")
@@ -58,6 +80,64 @@ class MediaDetailsViewModel : ViewModel() {
             } catch (e: Exception) {
                 Log.e("MediaDetails", "Critical error: ${e.message}", e)
                 _uiState.value = MediaDetailsUiState.Error("Błąd: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    private fun updateInteractionState(
+        containingListsIds: List<String>,
+        allUserLists: List<UserList>
+    ) {
+        val safeIds = containingListsIds.map { it.trim().lowercase() }
+        Log.d("FIREBASE_DEBUG", "Oczyszczone ID z bazy: $safeIds")
+        val isFav = safeIds.any { it.contains("favourites") }
+        val isWat = safeIds.any { it.contains("watched") }
+        val isBuc = safeIds.any { it.contains("bucketlist") }
+        val systemIdsOrNames = setOf("favourites", "watched", "bucketlist")
+        val customListsMapped = allUserLists.filter {
+            it.id.lowercase() !in systemIdsOrNames && it.name.lowercase() !in systemIdsOrNames
+        }.map { userList ->
+            val cleanListId = userList.id.trim().lowercase()
+            SelectableList(
+                listId = userList.id,
+                name = userList.name,
+                containsMedia = safeIds.any { it.contains(cleanListId) }
+            )
+        }
+        _interactionState.value = UserMediaInteractionState(
+            isFavorite = isFav,
+            isWatched = isWat,
+            isInBucketlist = isBuc,
+            customLists = customListsMapped
+        )
+    }
+
+    fun toggleListStatus(listId: String, currentStatus: Boolean, mediaId: Int, isMovie: Boolean) {
+        val newStatus = !currentStatus
+        _interactionState.value = _interactionState.value.let { currentState ->
+            val updatedCustomLists = currentState.customLists.map { customList ->
+                if (customList.listId == listId) {
+                    customList.copy(containsMedia = newStatus)
+                } else {
+                    customList
+                }
+            }
+            currentState.copy(
+                isFavorite = if (listId.equals("favourites", ignoreCase = true)) newStatus else currentState.isFavorite,
+                isWatched = if (listId.equals("watched", ignoreCase = true)) newStatus else currentState.isWatched,
+                isInBucketlist = if (listId.equals("bucketlist", ignoreCase = true)) newStatus else currentState.isInBucketlist,
+                customLists = updatedCustomLists
+            )
+        }
+        viewModelScope.launch {
+            try {
+                if (currentStatus) {
+                    WatchAppRepository.Lists.removeMediaFromList(listId, mediaId, isMovie)
+                } else {
+                    WatchAppRepository.addMediaToList(listId, mediaId, isMovie)
+                }
+            } catch (e: Exception) {
+                Log.e("MediaDetails", "Błąd podczas zmiany statusu listy o ID: $listId", e)
             }
         }
     }

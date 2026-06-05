@@ -1,4 +1,5 @@
 package com.jsdr.watchapp.ui.screens.media
+
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -18,14 +19,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.HistoryToggleOff
 import androidx.compose.material.icons.filled.MoreTime
 import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.AddCircle
-//import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Icon
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -43,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,6 +55,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
+import com.jsdr.watchapp.R
 import com.jsdr.watchapp.data.repository.WatchAppRepository
 import com.jsdr.watchapp.ui.components.RatingRow
 
@@ -62,6 +67,7 @@ fun MediaDetailsScreen(
     viewModel: MediaDetailsViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val interactionState by viewModel.interactionState.collectAsState()
 
     LaunchedEffect(mediaId, isMovie) {
         viewModel.loadProfile(mediaId, isMovie)
@@ -73,7 +79,9 @@ fun MediaDetailsScreen(
     var plotRating by remember { mutableIntStateOf(0) }
     var sfxRating by remember { mutableIntStateOf(0) }
     var reviewContent by remember { mutableStateOf("") }
+
     var showRatingsDialog by remember { mutableStateOf(false) }
+    var showCustomListsDialog by remember { mutableStateOf(false) }
 
     val title = when (val state = uiState) {
         is MediaDetailsUiState.MovieSuccess -> state.profile.movieDetails.title
@@ -156,7 +164,6 @@ fun MediaDetailsScreen(
                     color = Color.White,
                     fontSize = 30.sp,
                     modifier = Modifier
-                        .align(Alignment.TopStart)
                         .clickable { navController.popBackStack() }
                 )
                 Column(
@@ -167,7 +174,7 @@ fun MediaDetailsScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(320.dp)
+                            .height(420.dp)
                             .clip(RoundedCornerShape(24.dp))
                             .background(BrandPurple),
                         contentAlignment = Alignment.Center
@@ -274,44 +281,56 @@ fun MediaDetailsScreen(
                     )
                     Spacer(modifier = Modifier.height(20.dp))
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            // tutaj wprowadzić kontrolowanie stanu
-                            Icon(
-                                imageVector = Icons.Default.Favorite,
-                                contentDescription = "Ulubione",
-                                tint = BrandPurple
-                            )
-//                            Icon(
-//                                imageVector = Icons.Default.VisibilityOff,
-//                                contentDescription = "Niewidoczne",
-//                                tint = BrandPurple
-//                            )
-                            Icon(
-                                imageVector = Icons.Default.MoreTime,
-                                contentDescription = "Do obejrzenia",
-                                tint = BrandPurple
-                            )
-                            Icon(
-                                imageVector = Icons.Default.AddCircle,
-                                contentDescription = "Dodaj do wybranej listy",
-                                tint = BrandPurple
-                            )
-                            Icon(
-                                imageVector = Icons.Default.Visibility,
-                                contentDescription = "Obejrzane",
-                                tint = BrandPurple
-                            )
-                        }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Icon(
+                            painter = painterResource(
+                                id = if (interactionState.isFavorite) R.drawable.heart_minus else R.drawable.heart_check
+                            ),
+                            contentDescription = "Ulubione",
+                            tint = BrandPurple,
+                            modifier = Modifier.clickable {
+                                viewModel.toggleListStatus("favourites", interactionState.isFavorite, mediaId, isMovie)
+                            }
+                        )
 
+                        val isBucketlistEnabled = !interactionState.isWatched
+                        Icon(
+                            imageVector = if (interactionState.isInBucketlist) Icons.Default.HistoryToggleOff else Icons.Default.MoreTime,
+                            contentDescription = "Do obejrzenia (Bucketlist)",
+                            tint = if (isBucketlistEnabled) BrandPurple else Color.DarkGray,
+                            modifier = Modifier.clickable(enabled = isBucketlistEnabled) {
+                                viewModel.toggleListStatus("bucketlist", interactionState.isInBucketlist, mediaId, isMovie)
+                            }
+                        )
+
+                        Icon(
+                            imageVector = Icons.Default.AddCircle,
+                            contentDescription = "Dodaj do wybranej listy",
+                            tint = BrandPurple,
+                            modifier = Modifier.clickable {
+                                showCustomListsDialog = true
+                            }
+                        )
+
+                        Icon(
+                            imageVector = if (interactionState.isWatched) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = "Obejrzane",
+                            tint = BrandPurple,
+                            modifier = Modifier.clickable {
+                                viewModel.toggleListStatus("watched", interactionState.isWatched, mediaId, isMovie)
+                            }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-
                         for (i in 1..5) {
                             Text(
                                 text = if (i <= overallRating) "★" else "☆",
@@ -327,9 +346,93 @@ fun MediaDetailsScreen(
                 }
             }
         }
+
+        if (showCustomListsDialog) {
+            AlertDialog(
+                onDismissRequest = { showCustomListsDialog = false },
+                containerColor = DarkBackground,
+                title = {
+                    Text(
+                        text = "Dodaj do swoich list",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                text = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        if (interactionState.customLists.isEmpty()) {
+                            Text(
+                                text = "Brak zdefiniowanych list niestandardowych.",
+                                color = Color.White.copy(alpha = 0.6f),
+                                fontSize = 16.sp
+                            )
+                        } else {
+                            interactionState.customLists.forEach { customList ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .clickable {
+                                            viewModel.toggleListStatus(
+                                                listId = customList.listId,
+                                                currentStatus = customList.containsMedia,
+                                                mediaId = mediaId,
+                                                isMovie = isMovie
+                                            )
+                                        }
+                                        .padding(vertical = 6.dp, horizontal = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = customList.name,
+                                        color = Color.White,
+                                        fontSize = 16.sp
+                                    )
+                                    Checkbox(
+                                        checked = customList.containsMedia,
+                                        onCheckedChange = {
+                                            viewModel.toggleListStatus(
+                                                listId = customList.listId,
+                                                currentStatus = customList.containsMedia,
+                                                mediaId = mediaId,
+                                                isMovie = isMovie
+                                            )
+                                        },
+                                        colors = CheckboxDefaults.colors(
+                                            checkedColor = BrandPurple,
+                                            uncheckedColor = Color.White.copy(alpha = 0.5f),
+                                            checkmarkColor = Color.White
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = { showCustomListsDialog = false }
+                    ) {
+                        Text(
+                            text = "Gotowe",
+                            color = BrandPurple,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            )
+        }
+
         if (showRatingsDialog) {
             AlertDialog(
-                onDismissRequest = {},
+                onDismissRequest = { showRatingsDialog = false },
                 containerColor = DarkBackground,
                 title = {
                     Text(
@@ -342,43 +445,31 @@ fun MediaDetailsScreen(
                         RatingRow(
                             title = "Fabuła",
                             rating = plotRating,
-                            onRatingChange = {
-                                plotRating = it
-                            }
+                            onRatingChange = { plotRating = it }
                         )
                         RatingRow(
                             title = "Bohaterowie",
                             rating = characterRating,
-                            onRatingChange = {
-                                characterRating = it
-                            }
+                            onRatingChange = { characterRating = it }
                         )
                         RatingRow(
                             title = "Muzyka",
                             rating = musicRating,
-                            onRatingChange = {
-                                musicRating = it
-                            }
+                            onRatingChange = { musicRating = it }
                         )
                         RatingRow(
                             title = "Efekty specjalne",
                             rating = sfxRating,
-                            onRatingChange = {
-                                sfxRating = it
-                            }
+                            onRatingChange = { sfxRating = it }
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         OutlinedTextField(
                             value = reviewContent,
-                            onValueChange = {
-                                reviewContent = it
-                                            },
+                            onValueChange = { reviewContent = it },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(80.dp),
-                            placeholder = {
-                                Text("Napisz opinię...")
-                            },
+                            placeholder = { Text("Napisz opinię...") },
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = BrandPurple,
                                 unfocusedBorderColor = BrandPurple,
@@ -392,9 +483,7 @@ fun MediaDetailsScreen(
                 },
                 confirmButton = {
                     TextButton(
-                        onClick = {
-                            showRatingsDialog = false
-                        }
+                        onClick = { showRatingsDialog = false }
                     ) {
                         Text(
                             text = "Gotowe",
@@ -406,4 +495,3 @@ fun MediaDetailsScreen(
         }
     }
 }
-
