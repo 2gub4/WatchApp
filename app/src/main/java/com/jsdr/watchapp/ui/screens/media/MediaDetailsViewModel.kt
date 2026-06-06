@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
 sealed interface MediaDetailsUiState {
@@ -42,6 +43,9 @@ class MediaDetailsViewModel : ViewModel() {
     private val _interactionState = MutableStateFlow(UserMediaInteractionState())
     val interactionState: StateFlow<UserMediaInteractionState> = _interactionState.asStateFlow()
 
+    private val _userRating = MutableStateFlow<com.jsdr.watchapp.data.models.entities.Rating?>(null)
+    val userRating: StateFlow<com.jsdr.watchapp.data.models.entities.Rating?> = _userRating.asStateFlow()
+
     fun loadProfile(mediaId: Int, isMovie: Boolean, showLoadingLayout: Boolean = true) {
         viewModelScope.launch {
             if (showLoadingLayout) {
@@ -49,9 +53,8 @@ class MediaDetailsViewModel : ViewModel() {
             }
             try {
                 withTimeout(10_000L) {
-                    // Pobieramy wszystkie listy zdefiniowane przez użytkownika
                     val allUserLists = WatchAppRepository.Lists.getUserLists()
-
+                    //_userRating.value = WatchAppRepository.Ratings.getMediaRating(mediaId, isMovie)
                     if (isMovie) {
                         Log.d("MediaDetails", "trying to get details of movie with id: $mediaId")
                         val profile = WatchAppRepository.Movies.getMovieProfile(mediaId)
@@ -114,18 +117,20 @@ class MediaDetailsViewModel : ViewModel() {
 
     fun toggleListStatus(listId: String, currentStatus: Boolean, mediaId: Int, isMovie: Boolean) {
         val newStatus = !currentStatus
+
         _interactionState.value = _interactionState.value.let { currentState ->
             val updatedCustomLists = currentState.customLists.map { customList ->
                 if (customList.listId == listId) {
                     customList.copy(containsMedia = newStatus)
-                } else {
-                    customList
-                }
+                } else { customList }
             }
+            val isAddingToWatched = listId.equals("watched", ignoreCase = true) && newStatus
             currentState.copy(
                 isFavorite = if (listId.equals("favourites", ignoreCase = true)) newStatus else currentState.isFavorite,
                 isWatched = if (listId.equals("watched", ignoreCase = true)) newStatus else currentState.isWatched,
-                isInBucketlist = if (listId.equals("bucketlist", ignoreCase = true)) newStatus else currentState.isInBucketlist,
+                isInBucketlist = if (isAddingToWatched) false
+                else if (listId.equals("bucketlist", ignoreCase = true)) newStatus
+                else currentState.isInBucketlist,
                 customLists = updatedCustomLists
             )
         }
@@ -137,8 +142,26 @@ class MediaDetailsViewModel : ViewModel() {
                     WatchAppRepository.addMediaToList(listId, mediaId, isMovie)
                 }
             } catch (e: Exception) {
-                Log.e("MediaDetails", "Błąd podczas zmiany statusu listy o ID: $listId", e)
+                Log.e("MediaDetailsViewModel", "could not update list status witch listID: $listId", e)
             }
         }
     }
+
+//    fun saveRating(mediaId: Int, isMovie: Boolean, newRating: com.jsdr.watchapp.data.models.entities.Rating) {
+//        viewModelScope.launch {
+//            try {
+//                val isUpdating = _userRating.value != null
+//                _userRating.value = newRating
+//                withContext(kotlinx.coroutines.NonCancellable) {
+//                    if (isUpdating) {
+//                        //WatchAppRepository.Ratings.updateMediaRating(mediaId, isMovie, newRating)
+//                    } else {
+//                        //WatchAppRepository.Ratings.addMediaRating(mediaId, isMovie, newRating)
+//                    }
+//                }
+//            } catch (e: Exception) {
+//                Log.e("MediaDetails", "Could not save rating", e)
+//            }
+//        }
+//    }
 }

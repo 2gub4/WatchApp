@@ -289,6 +289,8 @@ object WatchAppFirestore {
                             "watched" -> {
                                 val counterField = if (isMovie) "watchedMoviesCount" else "watchedTvSeriesCount"
                                 transaction.update(userRef, counterField, FieldValue.increment(1L))
+                                val bucketlistRef = userRef.collection("lists").document("bucketlist")
+                                transaction.update(bucketlistRef, arrayField, FieldValue.arrayRemove(mediaId))
                             }
                             "favourites" -> {
                                 transaction.update(userRef, "favouritesCount", FieldValue.increment(1L))
