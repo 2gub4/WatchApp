@@ -24,6 +24,9 @@ import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
 import com.jsdr.watchapp.data.models.entities.UserList
 import com.jsdr.watchapp.ui.navigation.Screen
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import kotlinx.coroutines.delay
 
 @Composable
 fun ListsScreen(
@@ -84,6 +87,20 @@ fun ListsScreen(
             )
         }
         if (showAddDialog) {
+            val isNameDuplicate = viewState.usersLists.any { it.name.equals(newListName.trim(), ignoreCase = true) }
+            val isFormValid = newListName.isNotBlank() && !isNameDuplicate
+
+            // Inicjalizacja FocusRequestera
+            val focusRequester = remember { FocusRequester() }
+
+            // Automatyczne wywołanie focusu na pole tekstowe po otwarciu dialogu
+            LaunchedEffect(Unit) {
+                // Lekkie opóźnienie upewnia się, że komponent zdążył się narysować,
+                // co jest sprawdzoną praktyką przy otwieraniu klawiatury w Dialogach.
+                delay(100)
+                focusRequester.requestFocus()
+            }
+
             AlertDialog(
                 onDismissRequest = { showAddDialog = false },
                 containerColor = DarkBackground,
@@ -95,16 +112,34 @@ fun ListsScreen(
                             onValueChange = { newListName = it },
                             label = { Text("Nazwa listy") },
                             singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
+                            isError = isNameDuplicate,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(focusRequester), // Przypisanie focusu do tego pola
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White,
+                                errorTextColor = Color.White, // Poprawka: wymuszamy biały tekst przy błędzie
                                 focusedBorderColor = BrandPurple,
                                 focusedLabelColor = BrandPurple,
-                                cursorColor = BrandPurple
+                                cursorColor = BrandPurple,
+                                errorBorderColor = Color.Red,
+                                errorLabelColor = Color.Red,
+                                errorCursorColor = Color.Red // Opcjonalnie czerwony kursor w stanie błędu
                             )
                         )
+
+                        if (isNameDuplicate) {
+                            Text(
+                                text = "Lista o tej nazwie już istnieje.",
+                                color = Color.Red,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                            )
+                        }
+
                         Spacer(modifier = Modifier.height(16.dp))
+
                         OutlinedTextField(
                             value = newListDescription,
                             onValueChange = { newListDescription = it },
@@ -123,15 +158,18 @@ fun ListsScreen(
                     }
                 },
                 confirmButton = {
-                    TextButton(onClick = {
-                        if (newListName.isNotBlank()) {
-                            viewModel.createList(newListName, newListDescription)
-                        }
-                        newListName = ""
-                        newListDescription = ""
-                        showAddDialog = false
-                    }) {
-                        Text("Utwórz", color = BrandPurple)
+                    TextButton(
+                        onClick = {
+                            if (isFormValid) {
+                                viewModel.createList(newListName.trim(), newListDescription.trim())
+                                newListName = ""
+                                newListDescription = ""
+                                showAddDialog = false
+                            }
+                        },
+                        enabled = isFormValid
+                    ) {
+                        Text("Utwórz", color = if (isFormValid) BrandPurple else Color.Gray)
                     }
                 },
                 dismissButton = {
@@ -183,7 +221,7 @@ fun ListButton(
             .clip(RoundedCornerShape(18.dp))
             .background(BrandPurple)
             .clickable { onClick() }
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
