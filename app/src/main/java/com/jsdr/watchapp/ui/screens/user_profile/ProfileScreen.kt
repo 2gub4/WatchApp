@@ -148,16 +148,26 @@ fun ProfileScreen(
         EditDialog(
             title = "Nazwa użytkownika",
             currentValue = userProfile.username ?: "",
-            onConfirm = { viewModel.updateUserField("username", it) },
-            onDismiss = { }
+            onConfirm = {
+                viewModel.updateUserField("username", it)
+                showUsernameDialog = false
+            },
+            onDismiss = {
+                showUsernameDialog = false
+            }
         )
     }
     if (showEmailDialog) {
         EditDialog(
             title = "Email",
             currentValue = userProfile.email ?: "",
-            onConfirm = { viewModel.updateUserField("email", it) },
-            onDismiss = { }
+            onConfirm = {
+                viewModel.updateUserField("email", it)
+                showEmailDialog = false
+            },
+            onDismiss = {
+                showEmailDialog = false
+            }
         )
     }
     if (showBirthDialog) {
@@ -165,40 +175,51 @@ fun ProfileScreen(
             title = "Rok urodzenia",
             currentValue = userProfile.birthYear?.toString() ?: "",
             onConfirm = {
-                if (it.toIntOrNull() != null) {
-                    viewModel.updateUserField("birthYear", it)
-                }
+                viewModel.updateUserField("birthYear", it)
+                showBirthDialog = false
             },
-            onDismiss = { }
+            onDismiss = {
+                showBirthDialog = false
+            }
         )
     }
     if (showGenderDialog) {
         AlertDialog(
-            onDismissRequest = { },
+            onDismissRequest = {
+                showGenderDialog = false
+            },
             containerColor = DarkBackground,
             title = {
-                Text(text = "Wybierz płeć", color = Color.White)
+                Text(
+                    text = "Wybierz płeć",
+                    color = Color.White
+                )
             },
             text = {
                 Column {
+
                     Text(
                         text = "Pan",
                         color = Color.White,
-                        fontSize = 14.sp,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { viewModel.updateUserField("gender", "Pan") }
-                            .padding(16.dp)
+                            .clickable {
+                                viewModel.updateUserField("gender", "Pan")
+                                showGenderDialog = false
+                            }
+                            .padding(12.dp)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+
                     Text(
                         text = "Pani",
                         color = Color.White,
-                        fontSize = 14.sp,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { viewModel.updateUserField("gender", "Pani") }
-                            .padding(16.dp)
+                            .clickable {
+                                viewModel.updateUserField("gender", "Pani")
+                                showGenderDialog = false
+                            }
+                            .padding(12.dp)
                     )
                 }
             },
