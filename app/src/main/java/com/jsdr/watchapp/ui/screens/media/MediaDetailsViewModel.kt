@@ -54,7 +54,13 @@ class MediaDetailsViewModel : ViewModel() {
             try {
                 withTimeout(10_000L) {
                     val allUserLists = WatchAppRepository.Lists.getUserLists()
-                    //_userRating.value = WatchAppRepository.Ratings.getMediaRating(mediaId, isMovie)
+
+                    _userRating.value =
+                        WatchAppRepository.Ratings.getRating(
+                            mediaId,
+                            isMovie
+                        )
+
                     if (isMovie) {
                         Log.d("MediaDetails", "trying to get details of movie with id: $mediaId")
                         val profile = WatchAppRepository.Movies.getMovieProfile(mediaId)
@@ -147,21 +153,24 @@ class MediaDetailsViewModel : ViewModel() {
         }
     }
 
-//    fun saveRating(mediaId: Int, isMovie: Boolean, newRating: com.jsdr.watchapp.data.models.entities.Rating) {
-//        viewModelScope.launch {
-//            try {
-//                val isUpdating = _userRating.value != null
-//                _userRating.value = newRating
-//                withContext(kotlinx.coroutines.NonCancellable) {
-//                    if (isUpdating) {
-//                        //WatchAppRepository.Ratings.updateMediaRating(mediaId, isMovie, newRating)
-//                    } else {
-//                        //WatchAppRepository.Ratings.addMediaRating(mediaId, isMovie, newRating)
-//                    }
-//                }
-//            } catch (e: Exception) {
-//                Log.e("MediaDetails", "Could not save rating", e)
-//            }
-//        }
-//    }
+    fun saveRating(
+        mediaId: Int,
+        isMovie: Boolean,
+        newRating: com.jsdr.watchapp.data.models.entities.Rating
+    ) {
+        viewModelScope.launch {
+            try {
+                WatchAppRepository.Ratings.saveRating(
+                    mediaId,
+                    isMovie,
+                    newRating
+                )
+
+                _userRating.value = newRating
+
+            } catch (e: Exception) {
+                Log.e("MediaDetails", "Could not save rating", e)
+            }
+        }
+    }
 }

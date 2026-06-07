@@ -220,5 +220,46 @@ object WatchAppRepository {
             }
         }
     }
+    object Ratings {
+
+        suspend fun saveRating(
+            mediaId: Int,
+            isMovie: Boolean,
+            rating: com.jsdr.watchapp.data.models.entities.Rating
+        ) {
+
+            val existing =
+                WatchAppFirestore.Ratings.getMediaRating(
+                    CURRENT_USER,
+                    mediaId,
+                    isMovie
+                )
+
+            if (existing == null) {
+                WatchAppFirestore.Ratings.addMediaRating(
+                    CURRENT_USER,
+                    mediaId,
+                    isMovie,
+                    rating
+                )
+            } else {
+                WatchAppFirestore.Ratings.updateMediaRating(
+                    CURRENT_USER,
+                    mediaId,
+                    isMovie,
+                    rating
+                )
+            }
+        }
+        suspend fun getRating(
+            mediaId: Int,
+            isMovie: Boolean
+        ) =
+            WatchAppFirestore.Ratings.getMediaRating(
+                CURRENT_USER,
+                mediaId,
+                isMovie
+            )
+    }
 
 }

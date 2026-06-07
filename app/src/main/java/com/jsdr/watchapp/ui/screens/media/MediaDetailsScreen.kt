@@ -71,6 +71,7 @@ fun MediaDetailsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val interactionState by viewModel.interactionState.collectAsState()
+    val userRating by viewModel.userRating.collectAsState()
 
     LaunchedEffect(mediaId, isMovie) {
         viewModel.loadProfile(mediaId, isMovie)
@@ -308,7 +309,12 @@ fun MediaDetailsScreen(
                             contentDescription = "Ulubione",
                             tint = BrandPurple,
                             modifier = Modifier.clickable {
-                                viewModel.toggleListStatus("favourites", interactionState.isFavorite, mediaId, isMovie)
+                                viewModel.toggleListStatus(
+                                    "favourites",
+                                    interactionState.isFavorite,
+                                    mediaId,
+                                    isMovie
+                                )
                             }
                         )
 
@@ -318,7 +324,12 @@ fun MediaDetailsScreen(
                             contentDescription = "Do obejrzenia (Bucketlist)",
                             tint = if (isBucketlistEnabled) BrandPurple else Color.DarkGray,
                             modifier = Modifier.clickable(enabled = isBucketlistEnabled) {
-                                viewModel.toggleListStatus("bucketlist", interactionState.isInBucketlist, mediaId, isMovie)
+                                viewModel.toggleListStatus(
+                                    "bucketlist",
+                                    interactionState.isInBucketlist,
+                                    mediaId,
+                                    isMovie
+                                )
                             }
                         )
 
@@ -336,7 +347,12 @@ fun MediaDetailsScreen(
                             contentDescription = "Obejrzane",
                             tint = BrandPurple,
                             modifier = Modifier.clickable {
-                                viewModel.toggleListStatus("watched", interactionState.isWatched, mediaId, isMovie)
+                                viewModel.toggleListStatus(
+                                    "watched",
+                                    interactionState.isWatched,
+                                    mediaId,
+                                    isMovie
+                                )
                             }
                         )
                     }
@@ -361,7 +377,58 @@ fun MediaDetailsScreen(
                     }
                 }
             }
-        }
+                item {
+
+                    userRating?.let { rating ->
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(20.dp))
+                                .border(
+                                    2.dp,
+                                    BrandPurple,
+                                    RoundedCornerShape(20.dp)
+                                )
+                                .padding(16.dp)
+                        ) {
+
+                            Text(
+                                text = rating.review,
+                                color = Color.White
+                            )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Text(
+                                text = "Ocena ogólna: ${rating.overallRating}/5",
+                                color = Color.White
+                            )
+
+                            Text(
+                                text = "Fabuła: ${rating.plot}/5",
+                                color = Color.White
+                            )
+
+                            Text(
+                                text = "Bohaterowie: ${rating.characters}/5",
+                                color = Color.White
+                            )
+
+                            Text(
+                                text = "Muzyka: ${rating.music}/5",
+                                color = Color.White
+                            )
+
+                            Text(
+                                text = "Efekty specjalne: ${rating.sfx}/5",
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+            }
+
 
         if (showCustomListsDialog) {
             AlertDialog(
@@ -499,7 +566,24 @@ fun MediaDetailsScreen(
                 },
                 confirmButton = {
                     TextButton(
-                        onClick = { showRatingsDialog = false }
+                        onClick = {
+
+                            viewModel.saveRating(
+                                mediaId = mediaId,
+                                isMovie = isMovie,
+                                newRating = com.jsdr.watchapp.data.models.entities.Rating(
+                                    movieId = mediaId.toString(),
+                                    overallRating = overallRating.toDouble(),
+                                    characters = characterRating.toDouble(),
+                                    plot = plotRating.toDouble(),
+                                    music = musicRating.toDouble(),
+                                    sfx = sfxRating.toDouble(),
+                                    review = reviewContent
+                                )
+                            )
+
+                            showRatingsDialog = false
+                        }
                     ) {
                         Text(
                             text = "Gotowe",
