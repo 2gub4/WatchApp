@@ -3,6 +3,7 @@ package com.jsdr.watchapp.data.firebase
 import com.jsdr.watchapp.data.models.entities.Rating
 import com.jsdr.watchapp.data.models.entities.User
 import com.jsdr.watchapp.data.models.entities.UserList
+import com.jsdr.watchapp.data.repository.WatchAppRepository
 import kotlin.collections.emptyList
 
 object DataSeeder {
@@ -104,5 +105,9 @@ object DataSeeder {
             WatchAppFirestore.Media.addMediaToList(testUsr.uid, "bucketlist", media.key, media.value)
             WatchAppFirestore.Media.addMediaToList(testUsr.uid, "watched", media.key, media.value)
         }
+    }
+
+    suspend fun testUserRegistration() {
+        WatchAppRepository.Auth.registerUser("jakub.sosna@o2.pl", "naplet67", "2gub4")
     }
 }

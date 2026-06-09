@@ -1,6 +1,8 @@
 package com.jsdr.watchapp.data.repository
 
 import android.util.Log
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.jsdr.watchapp.data.api.TmdbApiResult
 import com.jsdr.watchapp.data.api.TmdbApi
 import com.jsdr.watchapp.data.firebase.WatchAppFirestore
@@ -16,14 +18,54 @@ import com.jsdr.watchapp.data.models.entities.UserList
 import com.jsdr.watchapp.domain.models.MediaOverview
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 const val CURRENT_USER: String = "test_user"
-//private val currentUserId: String = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
 
 object WatchAppRepository {
     const val POSTERS_BASE_URL = "https://image.tmdb.org/t/p/w500"
+    private val auth = Firebase.auth
+
+    object Auth {
+        val currentUser =  auth.currentUser
+
+        suspend fun signIn(email: String, password: String): Result<Boolean> {
+            return try {
+                auth.signInWithEmailAndPassword(email, password).await()
+                Result.success(true)
+            } catch (e: Exception) {
+                Log.e("AuthRepository", "Could not sign user in", e)
+                Result.failure(e)
+            }
+        }
+
+        fun signOut() {
+            auth.signOut()
+        }
+
+        suspend fun registerUser(email: String, password: String, username: String): Result<Boolean> {
+            return try {
+                val authResult = auth.createUserWithEmailAndPassword(email, password).await()
+                val firebaseUser = authResult.user
+                if (firebaseUser != null) {
+                    val newUser = User(
+                        uid = firebaseUser.uid,
+                        email = email,
+                        username = username
+                    )
+                    WatchAppFirestore.Users.addUser(newUser)
+                    Result.success(true)
+                } else {
+                    Result.failure(Exception("Could not register user."))
+                }
+            } catch (e: Exception) {
+                Log.e("AuthRepository", "Could not register user", e)
+                Result.failure(e)
+            }
+        }
+    }
 
     object User {
 

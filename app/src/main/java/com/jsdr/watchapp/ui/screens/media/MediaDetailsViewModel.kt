@@ -3,6 +3,7 @@ package com.jsdr.watchapp.ui.screens.media
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jsdr.watchapp.data.models.entities.Rating
 import com.jsdr.watchapp.data.models.entities.UserList
 import com.jsdr.watchapp.data.repository.WatchAppRepository
 import com.jsdr.watchapp.domain.models.profiles.MovieProfile
@@ -35,6 +36,11 @@ data class UserMediaInteractionState(
     val customLists: List<SelectableList> = emptyList()
 )
 
+data class RatingInteractionState(
+    val review: String = "",
+    // dokończ dominiś
+)
+
 class MediaDetailsViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow<MediaDetailsUiState>(MediaDetailsUiState.Loading)
@@ -43,8 +49,8 @@ class MediaDetailsViewModel : ViewModel() {
     private val _interactionState = MutableStateFlow(UserMediaInteractionState())
     val interactionState: StateFlow<UserMediaInteractionState> = _interactionState.asStateFlow()
 
-    private val _userRating = MutableStateFlow<com.jsdr.watchapp.data.models.entities.Rating?>(null)
-    val userRating: StateFlow<com.jsdr.watchapp.data.models.entities.Rating?> = _userRating.asStateFlow()
+    private val _userRating = MutableStateFlow<Rating?>(null)
+    val userRating: StateFlow<Rating?> = _userRating.asStateFlow()
 
     fun loadProfile(mediaId: Int, isMovie: Boolean, showLoadingLayout: Boolean = true) {
         viewModelScope.launch {
@@ -98,7 +104,6 @@ class MediaDetailsViewModel : ViewModel() {
         allUserLists: List<UserList>
     ) {
         val safeIds = containingListsIds.map { it.trim().lowercase() }
-        Log.d("FIREBASE_DEBUG", "Oczyszczone ID z bazy: $safeIds")
         val isFav = safeIds.any { it.contains("favourites") }
         val isWat = safeIds.any { it.contains("watched") }
         val isBuc = safeIds.any { it.contains("bucketlist") }
