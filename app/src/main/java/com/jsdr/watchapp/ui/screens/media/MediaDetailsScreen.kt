@@ -436,7 +436,7 @@ fun MediaDetailsScreen(
                             )
 
                             StarDisplay(
-                                rating = rating.plot,
+                                rating = rating.characters,
                                 size = 24
                             )
 
@@ -446,7 +446,7 @@ fun MediaDetailsScreen(
                             )
 
                             StarDisplay(
-                                rating = rating.plot,
+                                rating = rating.music,
                                 size = 24
                             )
 
@@ -455,7 +455,7 @@ fun MediaDetailsScreen(
                                 color = Color.White
                             )
                             StarDisplay(
-                                rating = rating.plot,
+                                rating = rating.sfx,
                                 size = 24
                             )
                             Text(
@@ -580,34 +580,49 @@ fun MediaDetailsScreen(
                 },
                 text = {
                     Column {
+
+                        RatingRow(
+                            title = "Ocena ogólna",
+                            rating = overallRating,
+                            onRatingChange = { overallRating = it }
+                        )
+
+
                         RatingRow(
                             title = "Fabuła",
                             rating = plotRating,
                             onRatingChange = { plotRating = it }
                         )
+
                         RatingRow(
                             title = "Bohaterowie",
                             rating = characterRating,
                             onRatingChange = { characterRating = it }
                         )
+
                         RatingRow(
                             title = "Muzyka",
                             rating = musicRating,
                             onRatingChange = { musicRating = it }
                         )
+
                         RatingRow(
                             title = "Efekty specjalne",
                             rating = sfxRating,
                             onRatingChange = { sfxRating = it }
                         )
+
                         Spacer(modifier = Modifier.height(24.dp))
+
                         OutlinedTextField(
                             value = reviewContent,
                             onValueChange = { reviewContent = it },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(80.dp),
-                            placeholder = { Text("Napisz opinię...") },
+                            placeholder = {
+                                Text("Napisz opinię...")
+                            },
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = BrandPurple,
                                 unfocusedBorderColor = BrandPurple,
