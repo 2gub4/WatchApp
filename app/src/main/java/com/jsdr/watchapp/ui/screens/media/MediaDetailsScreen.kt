@@ -161,15 +161,12 @@ fun MediaDetailsScreen(
                 bottom = 120.dp
             )
         ) {
-
                 item {
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .offset(x = (-8).dp)
                     ) {
-
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                             contentDescription = "Powrót",
@@ -182,7 +179,6 @@ fun MediaDetailsScreen(
                                 }
                         )
                     }
-
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
