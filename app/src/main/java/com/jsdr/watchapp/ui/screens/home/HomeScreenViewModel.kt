@@ -3,7 +3,6 @@ package com.jsdr.watchapp.ui.screens.home
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jsdr.watchapp.data.repository.CURRENT_USER
 import com.jsdr.watchapp.data.repository.WatchAppRepository
 import com.jsdr.watchapp.domain.models.MediaOverview
 import com.jsdr.watchapp.domain.models.toDomain
@@ -16,7 +15,6 @@ import java.time.LocalDate
 
 
 data class HomeViewState(
-    val currentUser: String = CURRENT_USER,
     val language: String = "pl-PL",
     val areMoviesSelected: Boolean = true,
     val selectedTab: String = "popular",

@@ -2,6 +2,7 @@ package com.jsdr.watchapp.data.repository
 
 import android.util.Log
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.jsdr.watchapp.data.api.TmdbApiResult
 import com.jsdr.watchapp.data.api.TmdbApi
@@ -16,20 +17,42 @@ import com.jsdr.watchapp.domain.models.profiles.TvSeriesProfile
 import com.jsdr.watchapp.data.models.entities.User
 import com.jsdr.watchapp.data.models.entities.UserList
 import com.jsdr.watchapp.domain.models.MediaOverview
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
-const val CURRENT_USER: String = "test_user"
-
-
 object WatchAppRepository {
+
+    private val repoScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     const val POSTERS_BASE_URL = "https://image.tmdb.org/t/p/w500"
     private val auth = Firebase.auth
+    private val _currentUserId = MutableStateFlow(auth.currentUser?.uid)
+
+    val currentUserFlow: StateFlow<String?> = callbackFlow {
+        val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            trySend(firebaseAuth.currentUser?.uid)
+        }
+        auth.addAuthStateListener(authStateListener)
+        awaitClose { auth.removeAuthStateListener(authStateListener) }
+    }.stateIn(
+        scope = repoScope,
+        started = SharingStarted.Lazily,
+        initialValue = auth.currentUser?.uid
+    )
+
+    //val requireUserId: String get() = auth.currentUser?.uid ?: throw IllegalStateException("No user logged in!")
+    const val requireUserId: String = "test_user"
 
     object Auth {
-        val currentUser =  auth.currentUser
 
         suspend fun signIn(email: String, password: String): Result<Boolean> {
             return try {
@@ -71,7 +94,7 @@ object WatchAppRepository {
 
         suspend fun addNewUser(userDto: UserDto) {
             val newUser = User(
-                CURRENT_USER,
+                requireUserId,
                 userDto.email,
                 userDto.username,
                 null,
@@ -82,23 +105,23 @@ object WatchAppRepository {
             WatchAppFirestore.Users.addUser(newUser)
         }
 
-        suspend fun getUser(userId: String = CURRENT_USER): com.jsdr.watchapp.data.models.entities.User? {
+        suspend fun getUser(userId: String = requireUserId): com.jsdr.watchapp.data.models.entities.User? {
             return WatchAppFirestore.Users.getCurrentUser(userId)
         }
 
         suspend fun getUserStats(): Map<String, Double> {
             return withContext(Dispatchers.IO) {
-                val stats = async { WatchAppFirestore.Users.getUserStats(CURRENT_USER) }
+                val stats = async { WatchAppFirestore.Users.getUserStats(requireUserId) }
                 stats.await()
             }
         }
 
         suspend fun update(subject: String /*Could be changed to enum*/, newValue: String) {
             when (subject) {
-                "username" -> WatchAppFirestore.Users.Updates.updateUsername(CURRENT_USER, newValue)
-                "gender" -> WatchAppFirestore.Users.Updates.updateGender(CURRENT_USER, newValue)
-                "birthYear" -> WatchAppFirestore.Users.Updates.updateBirthYear(CURRENT_USER, newValue.toInt())
-                "email" -> WatchAppFirestore.Users.Updates.updateEmail(CURRENT_USER, newValue)
+                "username" -> WatchAppFirestore.Users.Updates.updateUsername(requireUserId, newValue)
+                "gender" -> WatchAppFirestore.Users.Updates.updateGender(requireUserId, newValue)
+                "birthYear" -> WatchAppFirestore.Users.Updates.updateBirthYear(requireUserId, newValue.toInt())
+                "email" -> WatchAppFirestore.Users.Updates.updateEmail(requireUserId, newValue)
                 else -> throw Exception("Illegal argument: $subject")
             }
         }
@@ -107,19 +130,19 @@ object WatchAppRepository {
     object Lists {
 
         suspend fun getUserLists(): List<UserList> {
-            return WatchAppFirestore.Users.getUserLists(CURRENT_USER)
+            return WatchAppFirestore.Users.getUserLists(requireUserId)
         }
 
         suspend fun createList(list: UserList) {
-            WatchAppFirestore.Lists.createUserList(CURRENT_USER, list)
+            WatchAppFirestore.Lists.createUserList(requireUserId, list)
         }
 
         suspend fun deleteList(listId: String) {
-            WatchAppFirestore.Lists.deleteUserList(CURRENT_USER, listId)
+            WatchAppFirestore.Lists.deleteUserList(requireUserId, listId)
         }
 
         suspend fun removeMediaFromList(listId: String, mediaId: Int, isMovie: Boolean) {
-            WatchAppFirestore.Media.removeMediaFromList(CURRENT_USER, listId, mediaId, isMovie)
+            WatchAppFirestore.Media.removeMediaFromList(requireUserId, listId, mediaId, isMovie)
         }
 
         suspend fun getMediaOverviewsForList(userList: UserList): List<MediaOverview> {
@@ -159,7 +182,7 @@ object WatchAppRepository {
     }
 
     suspend fun addMediaToList(listId: String, mediaId: Int, isMovie: Boolean) {
-        WatchAppFirestore.Media.addMediaToList(CURRENT_USER, listId, mediaId, isMovie)
+        WatchAppFirestore.Media.addMediaToList(requireUserId, listId, mediaId, isMovie)
     }
 
     object Movies {
@@ -177,8 +200,8 @@ object WatchAppRepository {
         suspend fun getMovieProfile(movieId: Int): MovieProfile? {
             return withContext(Dispatchers.IO) {
                 val apiMovieDetails = async { getApiMovieDetails(movieId) }
-                val potentialUserRating = async { WatchAppFirestore.Ratings.getMediaRating(CURRENT_USER, movieId, true) }
-                val containingLists = async { WatchAppFirestore.Lists.getListsContainingMedia(CURRENT_USER, movieId, true) }
+                val potentialUserRating = async { WatchAppFirestore.Ratings.getMediaRating(requireUserId, movieId, true) }
+                val containingLists = async { WatchAppFirestore.Lists.getListsContainingMedia(requireUserId, movieId, true) }
                 val details = apiMovieDetails.await() ?: return@withContext null
                 MovieProfile(
                     movieDetails = details,
@@ -227,8 +250,8 @@ object WatchAppRepository {
         suspend fun getTvSeriesProfile(seriesId: Int): TvSeriesProfile? {
             return withContext(Dispatchers.IO) {
                 val apiTvSeriesDetails = async { getApiTvSeriesDetails(seriesId) }
-                val potentialUserRating = async { WatchAppFirestore.Ratings.getMediaRating(CURRENT_USER, seriesId, false) }
-                val containingLists = async { WatchAppFirestore.Lists.getListsContainingMedia(CURRENT_USER, seriesId, false) }
+                val potentialUserRating = async { WatchAppFirestore.Ratings.getMediaRating(requireUserId, seriesId, false) }
+                val containingLists = async { WatchAppFirestore.Lists.getListsContainingMedia(requireUserId, seriesId, false) }
                 val details = apiTvSeriesDetails.await() ?: return@withContext null
                 TvSeriesProfile(
                     seriesDetails = details,
@@ -272,21 +295,21 @@ object WatchAppRepository {
 
             val existing =
                 WatchAppFirestore.Ratings.getMediaRating(
-                    CURRENT_USER,
+                    requireUserId,
                     mediaId,
                     isMovie
                 )
 
             if (existing == null) {
                 WatchAppFirestore.Ratings.addMediaRating(
-                    CURRENT_USER,
+                    requireUserId,
                     mediaId,
                     isMovie,
                     rating
                 )
             } else {
                 WatchAppFirestore.Ratings.updateMediaRating(
-                    CURRENT_USER,
+                    requireUserId,
                     mediaId,
                     isMovie,
                     rating
@@ -298,7 +321,7 @@ object WatchAppRepository {
             isMovie: Boolean
         ) =
             WatchAppFirestore.Ratings.getMediaRating(
-                CURRENT_USER,
+                requireUserId,
                 mediaId,
                 isMovie
             )

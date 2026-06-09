@@ -108,6 +108,6 @@ object DataSeeder {
     }
 
     suspend fun testUserRegistration() {
-        WatchAppRepository.Auth.registerUser("jakub.sosna@o2.pl", "naplet67", "2gub4")
+        WatchAppRepository.Auth.registerUser("jakub.sosna@o2.pl", "test123", "2gub4")
     }
 }

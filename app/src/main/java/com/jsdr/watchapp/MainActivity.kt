@@ -26,7 +26,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-//import com.jsdr.watchapp.data.firebase.DataSeeder
+import com.jsdr.watchapp.data.firebase.DataSeeder
+import com.jsdr.watchapp.data.repository.WatchAppRepository
 
 val DarkBackground = Color(0xFF212121)
 val BrandPurple = Color(0xFF7F52FF)
@@ -48,6 +49,9 @@ class MainActivity : ComponentActivity() {
                         //DataSeeder.testUserDataUpdates()
                         //DataSeeder.testAddingTvSeries()
                         //DataSeeder.seedMedia()
+                        //DataSeeder.testUserRegistration()
+                        //WatchAppRepository.Auth.signIn("jakub.sosna@o2.pl", "test123")
+                        //WatchAppRepository.Auth.signOut()
                     }
                 }
             }
