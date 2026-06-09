@@ -51,6 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -83,6 +84,20 @@ fun MediaDetailsScreen(
     var plotRating by remember { mutableIntStateOf(0) }
     var sfxRating by remember { mutableIntStateOf(0) }
     var reviewContent by remember { mutableStateOf("") }
+
+    LaunchedEffect(userRating) {
+
+        userRating?.let { rating ->
+
+            overallRating = rating.overallRating.toInt()
+            characterRating = rating.characters.toInt()
+            plotRating = rating.plot.toInt()
+            musicRating = rating.music.toInt()
+            sfxRating = rating.sfx.toInt()
+
+            reviewContent = rating.review
+        }
+    }
 
     var showRatingsDialog by remember { mutableStateOf(false) }
     var showCustomListsDialog by remember { mutableStateOf(false) }
@@ -355,20 +370,23 @@ fun MediaDetailsScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        for (i in 1..5) {
-                            Text(
-                                text = if (i <= overallRating) "★" else "☆",
-                                color = BrandPurple,
-                                fontSize = 40.sp,
-                                modifier = Modifier.clickable {
-                                    overallRating = i
-                                    showRatingsDialog = true
-                                }
-                            )
+                    if (userRating == null) {
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            for (i in 1..5) {
+                                Text(
+                                    text = if (i <= overallRating) "★" else "☆",
+                                    color = BrandPurple,
+                                    fontSize = 40.sp,
+                                    modifier = Modifier.clickable {
+                                        overallRating = i
+                                        showRatingsDialog = true
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -389,36 +407,77 @@ fun MediaDetailsScreen(
                                 .padding(16.dp)
                         ) {
 
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Box(
+                                modifier = Modifier.clickable {
+                                    showRatingsDialog = true
+                                }
+                            ) {
+                                StarDisplay(
+                                    rating = rating.overallRating,
+                                    size = 60
+                                )
+                            }
+
+                            Text(
+                                text = "Fabuła",
+                                color = Color.White
+                            )
+
+                            StarDisplay(
+                                rating = rating.plot,
+                                size = 24
+                            )
+
+                            Text(
+                                text = "Bohaterowie",
+                                color = Color.White
+                            )
+
+                            StarDisplay(
+                                rating = rating.plot,
+                                size = 24
+                            )
+
+                            Text(
+                                text = "Muzyka",
+                                color = Color.White
+                            )
+
+                            StarDisplay(
+                                rating = rating.plot,
+                                size = 24
+                            )
+
+                            Text(
+                                text = "Efekty specjalne",
+                                color = Color.White
+                            )
+                            StarDisplay(
+                                rating = rating.plot,
+                                size = 24
+                            )
                             Text(
                                 text = rating.review,
                                 color = Color.White
                             )
-
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            Text(
-                                text = "Ocena ogólna: ${rating.overallRating}/5",
-                                color = Color.White
-                            )
+                            val formattedDate =
+                                rating.ratingDate?.let {
+                                    java.text.SimpleDateFormat(
+                                        "dd.MM.yyyy",
+                                        java.util.Locale.getDefault()
+                                    ).format(it)
+                                } ?: ""
 
                             Text(
-                                text = "Fabuła: ${rating.plot}/5",
-                                color = Color.White
-                            )
-
-                            Text(
-                                text = "Bohaterowie: ${rating.characters}/5",
-                                color = Color.White
-                            )
-
-                            Text(
-                                text = "Muzyka: ${rating.music}/5",
-                                color = Color.White
-                            )
-
-                            Text(
-                                text = "Efekty specjalne: ${rating.sfx}/5",
-                                color = Color.White
+                                text = formattedDate,
+                                color = Color.Gray,
+                                fontSize = 10.sp,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.End
                             )
                         }
                     }
@@ -587,6 +646,21 @@ fun MediaDetailsScreen(
                         )
                     }
                 }
+            )
+        }
+    }
+}
+@Composable
+fun StarDisplay(
+    rating: Double,
+    size: Int = 20
+) {
+    Row {
+        for (i in 1..5) {
+            Text(
+                text = if (i <= rating.toInt()) "★" else "☆",
+                color = BrandPurple,
+                fontSize = size.sp
             )
         }
     }
