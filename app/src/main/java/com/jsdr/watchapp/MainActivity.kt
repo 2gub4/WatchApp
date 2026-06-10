@@ -27,7 +27,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.jsdr.watchapp.data.firebase.DataSeeder
-import com.jsdr.watchapp.data.repository.WatchAppRepository
 import com.jsdr.watchapp.ui.screens.auth.LoginScreen
 import com.jsdr.watchapp.ui.screens.auth.RegisterScreen
 
@@ -54,6 +53,7 @@ class MainActivity : ComponentActivity() {
                         //DataSeeder.testUserRegistration()
                         //WatchAppRepository.Auth.signIn("jakub.sosna@o2.pl", "test123")
                         //WatchAppRepository.Auth.signOut()
+                        //DataSeeder.addRatedMoviesListTo2gub4Account()
                     }
                 }
             }

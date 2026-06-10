@@ -48,7 +48,7 @@ object DataSeeder {
 
     val bucketlistTemplate = UserList(
         id = "bucketlist",
-        name = "Kupka Wstydu",
+        name = "Do Obejrzenia",
         description = "Filmy i seriale, które już dawno powinieneś był obejrzeć",
         movies = emptyList(),
         series = emptyList()
@@ -117,5 +117,9 @@ object DataSeeder {
 
     suspend fun testUserRegistration() {
         WatchAppRepository.Auth.registerUser("jakub.sosna@o2.pl", "test123", "2gub4")
+    }
+
+    suspend fun addRatedMoviesListTo2gub4Account() {
+        WatchAppFirestore.Lists.createUserList("5ubFTs7QLieLUPhpo2sTbFbeWZ12", ratedTemplate)
     }
 }
