@@ -53,6 +53,57 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         OutlinedTextField(
+            value = uiState.username,
+            onValueChange = {
+                viewModel.updateUsername(it)
+            },
+            label = {
+                Text(
+                    text = "Nazwa użytkownika",
+                    color = Color.White
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedLabelColor = Color.White,
+                unfocusedLabelColor = Color.White,
+                focusedBorderColor = BrandPurple,
+                unfocusedBorderColor = Color.Gray,
+                cursorColor = BrandPurple
+            )
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = uiState.email,
+            onValueChange = {
+                viewModel.updateEmail(it)
+            },
+            label = {
+                Text(
+                    text = "Email",
+                    color = Color.White
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedLabelColor = Color.White,
+                unfocusedLabelColor = Color.White,
+                focusedBorderColor = BrandPurple,
+                unfocusedBorderColor = Color.Gray,
+                cursorColor = BrandPurple
+            )
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedTextField(
             value = uiState.birthYear,
             onValueChange = {
                 viewModel.updateBirthYear(it)
@@ -114,32 +165,6 @@ fun RegisterScreen(
                 }
             )
         }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OutlinedTextField(
-            value = uiState.email,
-            onValueChange = {
-                viewModel.updateEmail(it)
-            },
-            label = {
-                Text(
-                    text = "Email",
-                    color = Color.White
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedLabelColor = Color.White,
-                unfocusedLabelColor = Color.White,
-                focusedBorderColor = BrandPurple,
-                unfocusedBorderColor = Color.Gray,
-                cursorColor = BrandPurple
-            )
-        )
 
         Spacer(modifier = Modifier.height(12.dp))
 

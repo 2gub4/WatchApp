@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 
 data class AuthUiState(
+    val username: String = "",
     val email: String = "",
     val password: String = "",
     val repeatPassword: String = "",
@@ -24,6 +25,11 @@ class AuthViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState = _uiState.asStateFlow()
 
+    fun updateUsername(value: String) {
+        _uiState.value = _uiState.value.copy(
+            username = value
+        )
+    }
     fun updateEmail(value: String) {
         _uiState.value = _uiState.value.copy(email = value)
     }
@@ -119,7 +125,7 @@ class AuthViewModel : ViewModel() {
                 WatchAppRepository.Auth.registerUser(
                     email = state.email,
                     password = state.password,
-                    username = state.email.substringBefore("@")
+                    username = state.username
                 )
 
             _uiState.value =
