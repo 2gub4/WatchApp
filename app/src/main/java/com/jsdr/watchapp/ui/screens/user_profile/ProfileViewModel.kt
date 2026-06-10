@@ -52,17 +52,18 @@ class UserProfileViewModel : ViewModel() {
             _statsState.update { it.copy(isLoading = true) }
             try {
                 val statsMap = WatchAppRepository.User.getUserStats()
-
-                _statsState.update {
-                    it.copy(
-                        watchedMovies = statsMap["watchedMovies"]?.toInt() ?: 0,
-                        watchedSeries = statsMap["watchedSeries"]?.toInt() ?: 0,
-                        totalFavourites = statsMap["totalFavourites"]?.toInt() ?: 0,
-                        totalRatings = statsMap["totalRatings"]?.toInt() ?: 0,
-                        totalLists = statsMap["totalLists"]?.toInt()  ?: 0,
-                        averageRating = statsMap["averageRating"] ?: 0.0,
-                        isLoading = false
-                    )
+                if (statsMap != null) {
+                    _statsState.update {
+                        it.copy(
+                            watchedMovies = statsMap["watchedMovies"]?.toInt() ?: 0,
+                            watchedSeries = statsMap["watchedSeries"]?.toInt() ?: 0,
+                            totalFavourites = statsMap["totalFavourites"]?.toInt() ?: 0,
+                            totalRatings = statsMap["totalRatings"]?.toInt() ?: 0,
+                            totalLists = statsMap["totalLists"]?.toInt() ?: 0,
+                            averageRating = statsMap["averageRating"] ?: 0.0,
+                            isLoading = false
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("UserProfileViewModel", "Błąd podczas pobierania statystyk", e)

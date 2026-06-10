@@ -27,7 +27,7 @@ object WatchAppFirestore {
                 val snap = firestoreDb.collection("users").document(userId).get().await()
                 snap.toObject(User::class.java)
             } catch (_: Exception) {
-                Log.e("WatchApp Firestore", "Could not get current user data")
+                //Log.e("WatchApp Firestore", "Could not get current user data")
                 null
             }
         }
@@ -77,12 +77,13 @@ object WatchAppFirestore {
                     "averageRating" to averageRating
                 )
             } catch (e: Exception) {
-                Log.e("WatchApp Firestore", "Could not get user stats for user: $userId", e)
+                //Log.e("WatchApp Firestore", "Could not get user stats for user: $userId", e)
                 emptyMap()
             }
         }
 
         suspend fun getUserLists(userId: String): List<UserList> {
+            if (userId.isEmpty()) return emptyList()
             return try {
                 val snapshot = firestoreDb.collection("users")
                     .document(userId)
@@ -182,6 +183,7 @@ object WatchAppFirestore {
         }
 
         suspend fun getListsContainingMedia(userId: String, mediaId: Int, isMovie: Boolean): List<String> {
+            if (userId.isEmpty()) return emptyList()
             return try {
                 val arrayField = if (isMovie) "movies" else "series"
                 val snapshot = firestoreDb.collection("users")
@@ -200,6 +202,7 @@ object WatchAppFirestore {
 
     object Ratings {
         suspend fun getMediaRating(userId: String, mediaId: Int, isMovie: Boolean): Rating? {
+            if (userId.isEmpty()) return null
             val docId = getRatingId(mediaId, isMovie)
             return try {
                 val result = firestoreDb.collection("users").document(userId)
