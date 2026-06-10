@@ -8,7 +8,7 @@ data class UserList(
     @DocumentId val id: String = "",
     val name: String = "",
     var description: String? = null,
-    val movies: List<Int> = emptyList(),
-    val series: List<Int> = emptyList(),
+    val movies: Map<String, Long> = emptyMap(),
+    val series: Map<String, Long> = emptyMap(),
     @ServerTimestamp val creationDate: Date? = null,
 )

@@ -42,39 +42,39 @@ object DataSeeder {
         id = "favourites",
         name = "Ulubione",
         description = "Filmy i seriale, które wyjątkowo doceniłeś",
-        movies = emptyList(),
-        series = emptyList()
+        movies = emptyMap(),
+        series = emptyMap()
     )
 
     val bucketlistTemplate = UserList(
         id = "bucketlist",
         name = "Do Obejrzenia",
         description = "Filmy i seriale, które już dawno powinieneś był obejrzeć",
-        movies = emptyList(),
-        series = emptyList()
+        movies = emptyMap(),
+        series = emptyMap()
     )
 
     val watchedTemplate = UserList(
         id = "watched",
         name = "Obejrzane",
         description = "Filmy i seriale, które już obejrzałeś",
-        movies = emptyList(),
-        series = emptyList()
+        movies = emptyMap(),
+        series = emptyMap()
     )
 
     val ratedTemplate = UserList(
         id = "rated",
         name = "Ocenione",
         description = "Filmy i seriale, które oceniłeś",
-        movies = emptyList(),
-        series = emptyList()
+        movies = emptyMap(),
+        series = emptyMap()
     )
 
     private val customListTest = UserList(
         name = "Guilty Pleasures",
         description = "Słabe produkcje, dobra zabawa",
-        movies = emptyList(),
-        series = emptyList()
+        movies = emptyMap(),
+        series = emptyMap()
     )
 
     private val ratingTest = Rating(

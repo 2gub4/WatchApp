@@ -202,7 +202,6 @@ object WatchAppFirestore {
             listToChange.update("name", newName).await()
         }
 
-
         suspend fun getListsContainingMedia(userId: String, mediaId: Int, isMovie: Boolean): List<String> {
             if (userId.isEmpty()) return emptyList()
             return try {
@@ -210,15 +209,18 @@ object WatchAppFirestore {
                 val snapshot = firestoreDb.collection("users")
                     .document(userId)
                     .collection("lists")
-                    .whereArrayContains(arrayField, mediaId)
                     .get()
                     .await()
-                snapshot.documents.map { it.id }
+                snapshot.documents.filter { doc ->
+                    val mediaMap = doc.get(arrayField) as? Map<String, Any>
+                    mediaMap?.containsKey(mediaId.toString()) == true
+                }.map { it.id }
             } catch (e: Exception) {
                 Log.e("WatchAppFirestore", "Could not receive Lists", e)
                 emptyList()
             }
         }
+
     }
 
     object Ratings {
@@ -247,7 +249,7 @@ object WatchAppFirestore {
                     transaction.update(userRef, "ratingsCount", FieldValue.increment(1L))
                     val listRef = userRef.collection("lists").document("rated")
                     val arrayField = if (isMovie) "movies" else "series"
-                    transaction.update(listRef, arrayField, FieldValue.arrayUnion(mediaId))
+                    transaction.update(listRef, "$arrayField.${mediaId}", System.currentTimeMillis())
                 }.await()
             } catch (e: Exception) {
                 Log.e("MovieFirestore", "Could not add media rating", e)
@@ -267,7 +269,7 @@ object WatchAppFirestore {
                         transaction.update(userRef, "ratingsCount", FieldValue.increment(-1L))
                         val listRef = userRef.collection("lists").document("rated")
                         val arrayField = if (isMovie) "movies" else "series"
-                        transaction.update(listRef, arrayField, FieldValue.arrayRemove(mediaId))
+                        transaction.update(listRef, "$arrayField.${mediaId}", FieldValue.delete())
                     }
                 }.await()
             } catch (e: Exception) {
@@ -311,16 +313,16 @@ object WatchAppFirestore {
             try {
                 firestoreDb.runTransaction { transaction ->
                     val listSnapshot = transaction.get(listRef)
-                    val currentArray = listSnapshot.get(arrayField) as? List<Number> ?: emptyList()
-                    val isAlreadyInList = currentArray.any { it.toInt() == mediaId }
+                    val mediaMap = listSnapshot.get(arrayField) as? Map<String, Any> ?: emptyMap()
+                    val isAlreadyInList = mediaMap.containsKey(mediaId.toString())
                     if (!isAlreadyInList) {
-                        transaction.update(listRef, arrayField, FieldValue.arrayUnion(mediaId))
+                        transaction.update(listRef, "$arrayField.${mediaId}", System.currentTimeMillis())
                         when (listId) {
                             "watched" -> {
                                 val counterField = if (isMovie) "watchedMoviesCount" else "watchedTvSeriesCount"
                                 transaction.update(userRef, counterField, FieldValue.increment(1L))
                                 val bucketlistRef = userRef.collection("lists").document("bucketlist")
-                                transaction.update(bucketlistRef, arrayField, FieldValue.arrayRemove(mediaId))
+                                transaction.update(bucketlistRef, "$arrayField.${mediaId}", FieldValue.delete())
                             }
                             "favourites" -> {
                                 transaction.update(userRef, "favouritesCount", FieldValue.increment(1L))
@@ -339,18 +341,16 @@ object WatchAppFirestore {
                 Log.w("watchappfirestore", "attempted to remove item from rated list directly")
                 throw Exception("nie mozna recznie usunac elementu z tej listy")
             }
-
             val userRef = firestoreDb.collection("users").document(userId)
             val listRef = userRef.collection("lists").document(listId)
             val arrayField = if (isMovie) "movies" else "series"
-
             try {
                 firestoreDb.runTransaction { transaction ->
                     val listSnapshot = transaction.get(listRef)
-                    val currentArray = listSnapshot.get(arrayField) as? List<Number> ?: emptyList()
-                    val isInList = currentArray.any { it.toInt() == mediaId }
+                    val mediaMap = listSnapshot.get(arrayField) as? Map<String, Any> ?: emptyMap()
+                    val isInList = mediaMap.containsKey(mediaId.toString())
                     if (isInList) {
-                        transaction.update(listRef, arrayField, FieldValue.arrayRemove(mediaId))
+                        transaction.update(listRef, "$arrayField.${mediaId}", FieldValue.delete())
                         when (listId) {
                             "watched" -> {
                                 val counterField = if (isMovie) "watchedMoviesCount" else "watchedTvSeriesCount"
@@ -368,7 +368,5 @@ object WatchAppFirestore {
             }
         }
     }
+
 }
-
-
-//CHAT JEBANY

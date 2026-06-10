@@ -151,7 +151,13 @@ object WatchAppRepository {
 
         suspend fun getMediaOverviewsForList(userList: UserList): List<MediaOverview> {
             return withContext(Dispatchers.IO) {
-                val moviesDeferred = userList.movies.map { movieId ->
+                val sortedMovies = userList.movies.entries
+                    .sortedByDescending { it.value }
+                    .map { it.key.toInt() }
+                val sortedSeries = userList.series.entries
+                    .sortedByDescending { it.value }
+                    .map { it.key.toInt() }
+                val moviesDeferred = sortedMovies.map { movieId ->
                     async {
                         val details = Movies.getApiMovieDetails(movieId)
                         details?.let {
@@ -165,7 +171,7 @@ object WatchAppRepository {
                         }
                     }
                 }
-                val seriesDeferred = userList.series.map { seriesId ->
+                val seriesDeferred = sortedSeries.map { seriesId ->
                     async {
                         val details = TvSeries.getApiTvSeriesDetails(seriesId)
                         details?.let {
