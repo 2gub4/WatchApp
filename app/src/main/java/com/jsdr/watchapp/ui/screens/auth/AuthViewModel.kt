@@ -2,6 +2,7 @@ package com.jsdr.watchapp.ui.screens.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jsdr.watchapp.data.firebase.WatchAppFirestore
 import com.jsdr.watchapp.data.repository.WatchAppRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +17,10 @@ data class AuthUiState(
     val birthYear: String = "",
     val gender: String = "Pan",
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
+    val usernameError: String? = null,
+    val emailError: String? = null,
+    val birthYearError: String? = null,
+    val passwordError: String? = null,
     val isSuccess: Boolean = false
 )
 
@@ -26,24 +30,107 @@ class AuthViewModel : ViewModel() {
     val uiState = _uiState.asStateFlow()
 
     fun updateUsername(value: String) {
-        _uiState.value = _uiState.value.copy(
-            username = value
-        )
+
+        _uiState.value =
+            _uiState.value.copy(
+                username = value
+            )
+
+        viewModelScope.launch {
+
+            val usernames =
+                WatchAppFirestore.Users.getUsernames()
+
+            val duplicate =
+                usernames.any {
+                    it.equals(value.trim(), ignoreCase = true)
+                }
+
+            _uiState.value =
+                _uiState.value.copy(
+                    usernameError =
+                        if (duplicate)
+                            "Użytkownik o takim nicku już istnieje"
+                        else
+                            null
+                )
+        }
     }
     fun updateEmail(value: String) {
-        _uiState.value = _uiState.value.copy(email = value)
+
+        val isValidEmail =
+            android.util.Patterns.EMAIL_ADDRESS
+                .matcher(value)
+                .matches()
+
+        _uiState.value =
+            _uiState.value.copy(
+                email = value,
+                emailError =
+                    when {
+                        value.isBlank() ->
+                            null
+
+                        !isValidEmail ->
+                            "Nieprawidłowy adres email"
+
+                        else ->
+                            null
+                    }
+            )
     }
 
     fun updatePassword(value: String) {
-        _uiState.value = _uiState.value.copy(password = value)
+
+        _uiState.value =
+            _uiState.value.copy(
+                password = value,
+                passwordError =
+                    if (
+                        _uiState.value.repeatPassword.isNotEmpty() &&
+                        value != _uiState.value.repeatPassword
+                    )
+                        "Hasła nie są takie same"
+                    else
+                        null
+            )
     }
 
     fun updateRepeatPassword(value: String) {
-        _uiState.value = _uiState.value.copy(repeatPassword = value)
+
+        _uiState.value =
+            _uiState.value.copy(
+                repeatPassword = value,
+                passwordError =
+                    if (
+                        _uiState.value.password.isNotEmpty() &&
+                        value != _uiState.value.password
+                    )
+                        "Hasła nie są takie same"
+                    else
+                        null
+            )
     }
 
     fun updateBirthYear(value: String) {
-        _uiState.value = _uiState.value.copy(birthYear = value)
+
+        val year = value.toIntOrNull()
+
+        _uiState.value =
+            _uiState.value.copy(
+                birthYear = value,
+                birthYearError =
+                    when {
+                        year == null && value.isNotEmpty() ->
+                            "Nieprawidłowy rok"
+
+                        year != null &&
+                                Calendar.getInstance().get(Calendar.YEAR) - year < 18 ->
+                            "Musisz mieć ukończone 18 lat"
+
+                        else -> null
+                    }
+            )
     }
 
     fun updateGender(value: String) {
@@ -56,7 +143,8 @@ class AuthViewModel : ViewModel() {
             _uiState.value =
                 _uiState.value.copy(
                     isLoading = true,
-                    errorMessage = null
+                    emailError = null,
+                    passwordError = null
                 )
 
             val result =
@@ -69,7 +157,7 @@ class AuthViewModel : ViewModel() {
                 _uiState.value.copy(
                     isLoading = false,
                     isSuccess = result.isSuccess,
-                    errorMessage = result.exceptionOrNull()?.message
+                    emailError = result.exceptionOrNull()?.message
                 )
         }
     }
@@ -78,12 +166,29 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
 
             val state = _uiState.value
+            val existingUsernames =
+                WatchAppFirestore.Users.getUsernames()
+
+            val isUsernameDuplicate =
+                existingUsernames.any {
+                    it.equals(state.username.trim(), ignoreCase = true)
+                }
+
+            if (isUsernameDuplicate) {
+
+                _uiState.value =
+                    state.copy(
+                        usernameError = "Użytkownik o takim nicku już istnieje"
+                    )
+
+                return@launch
+            }
 
             if (state.password != state.repeatPassword) {
 
                 _uiState.value =
                     state.copy(
-                        errorMessage = "Hasła nie są takie same"
+                        passwordError = "Hasła nie są takie same"
                     )
 
                 return@launch
@@ -96,7 +201,7 @@ class AuthViewModel : ViewModel() {
 
                 _uiState.value =
                     state.copy(
-                        errorMessage = "Nieprawidłowy rok urodzenia"
+                        birthYearError = "Musisz mieć ukończone 18 lat"
                     )
 
                 return@launch
@@ -109,7 +214,7 @@ class AuthViewModel : ViewModel() {
 
                 _uiState.value =
                     state.copy(
-                        errorMessage = "Musisz mieć ukończone 18 lat"
+                        birthYearError = "Musisz mieć ukończone 18 lat"
                     )
 
                 return@launch
@@ -118,7 +223,10 @@ class AuthViewModel : ViewModel() {
             _uiState.value =
                 state.copy(
                     isLoading = true,
-                    errorMessage = null
+                    usernameError = null,
+                    emailError = null,
+                    birthYearError = null,
+                    passwordError = null
                 )
 
             val result =
@@ -132,7 +240,7 @@ class AuthViewModel : ViewModel() {
                 _uiState.value.copy(
                     isLoading = false,
                     isSuccess = result.isSuccess,
-                    errorMessage = result.exceptionOrNull()?.message
+                    emailError = result.exceptionOrNull()?.message
                 )
         }
     }

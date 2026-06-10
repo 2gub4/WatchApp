@@ -131,8 +131,7 @@ fun LoginScreen(
                 color = Color.White
             )
         }
-
-        uiState.errorMessage?.let {
+        uiState.emailError?.let {
 
             Spacer(modifier = Modifier.height(12.dp))
 

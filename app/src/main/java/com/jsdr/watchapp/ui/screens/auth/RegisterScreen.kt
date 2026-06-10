@@ -1,6 +1,8 @@
 package com.jsdr.watchapp.ui.screens.auth
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -10,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.jsdr.watchapp.BrandPurple
@@ -38,10 +41,10 @@ fun RegisterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(24.dp)
+            .verticalScroll(rememberScrollState()),
 
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
         Text(
@@ -74,6 +77,13 @@ fun RegisterScreen(
                 cursorColor = BrandPurple
             )
         )
+        uiState.usernameError?.let {
+            Text(
+                text = it,
+                color = Color.Red,
+                fontSize = 12.sp
+            )
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -100,6 +110,13 @@ fun RegisterScreen(
                 cursorColor = BrandPurple
             )
         )
+        uiState.emailError?.let {
+            Text(
+                text = it,
+                color = Color.Red,
+                fontSize = 12.sp
+            )
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -126,6 +143,13 @@ fun RegisterScreen(
                 cursorColor = BrandPurple
             )
         )
+        uiState.birthYearError?.let {
+            Text(
+                text = it,
+                color = Color.Red,
+                fontSize = 12.sp
+            )
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -149,7 +173,11 @@ fun RegisterScreen(
                         text = "Mężczyzna",
                         color = Color.White
                     )
-                }
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = BrandPurple,
+                    selectedLabelColor = Color.White
+                )
             )
 
             FilterChip(
@@ -162,7 +190,11 @@ fun RegisterScreen(
                         text = "Kobieta",
                         color = Color.White
                     )
-                }
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = BrandPurple,
+                    selectedLabelColor = Color.White
+                )
             )
         }
 
@@ -217,6 +249,13 @@ fun RegisterScreen(
                 cursorColor = BrandPurple
             )
         )
+        uiState.passwordError?.let {
+            Text(
+                text = it,
+                color = Color.Red,
+                fontSize = 12.sp
+            )
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -239,18 +278,8 @@ fun RegisterScreen(
             onClick = {
                 navController.navigate(Screen.Login.route)
             }
-        ) {
+        ){
             Text("Masz już konto? Zaloguj się")
         }
-
-        uiState.errorMessage?.let {
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = it,
-                color = MaterialTheme.colorScheme.error
-            )
         }
     }
-}
