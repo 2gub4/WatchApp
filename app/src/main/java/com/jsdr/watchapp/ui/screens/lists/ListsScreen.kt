@@ -99,14 +99,8 @@ fun ListsScreen(
         if (showAddDialog) {
             val isNameDuplicate = viewState.usersLists.any { it.name.equals(newListName.trim(), ignoreCase = true) }
             val isFormValid = newListName.isNotBlank() && !isNameDuplicate
-
-            // Inicjalizacja FocusRequestera
             val focusRequester = remember { FocusRequester() }
-
-            // Automatyczne wywołanie focusu na pole tekstowe po otwarciu dialogu
             LaunchedEffect(Unit) {
-                // Lekkie opóźnienie upewnia się, że komponent zdążył się narysować,
-                // co jest sprawdzoną praktyką przy otwieraniu klawiatury w Dialogach.
                 delay(100)
                 focusRequester.requestFocus()
             }
@@ -125,20 +119,19 @@ fun ListsScreen(
                             isError = isNameDuplicate,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .focusRequester(focusRequester), // Przypisanie focusu do tego pola
+                                .focusRequester(focusRequester),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White,
-                                errorTextColor = Color.White, // Poprawka: wymuszamy biały tekst przy błędzie
+                                errorTextColor = Color.White,
                                 focusedBorderColor = BrandPurple,
                                 focusedLabelColor = BrandPurple,
                                 cursorColor = BrandPurple,
                                 errorBorderColor = Color.Red,
                                 errorLabelColor = Color.Red,
-                                errorCursorColor = Color.Red // Opcjonalnie czerwony kursor w stanie błędu
+                                errorCursorColor = Color.Red
                             )
                         )
-
                         if (isNameDuplicate) {
                             Text(
                                 text = "Lista o tej nazwie już istnieje.",
@@ -147,9 +140,7 @@ fun ListsScreen(
                                 modifier = Modifier.padding(start = 16.dp, top = 4.dp)
                             )
                         }
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = newListDescription,
                             onValueChange = { newListDescription = it },
@@ -289,6 +280,12 @@ fun ListButton(
                         onClick = {
                             expanded = false
                             onDeleteClick()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Zmień nazwę", color = Color.White) },
+                        onClick = {
+                            expanded = false
                         }
                     )
                 }
