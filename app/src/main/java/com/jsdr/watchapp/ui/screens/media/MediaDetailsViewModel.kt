@@ -107,7 +107,7 @@ class MediaDetailsViewModel : ViewModel() {
         val isFav = safeIds.any { it.contains("favourites") }
         val isWat = safeIds.any { it.contains("watched") }
         val isBuc = safeIds.any { it.contains("bucketlist") }
-        val systemIdsOrNames = setOf("favourites", "watched", "bucketlist")
+        val systemIdsOrNames = setOf("favourites", "watched", "bucketlist", "rated")
         val customListsMapped = allUserLists.filter {
             it.id.lowercase() !in systemIdsOrNames && it.name.lowercase() !in systemIdsOrNames
         }.map { userList ->
@@ -179,3 +179,5 @@ class MediaDetailsViewModel : ViewModel() {
         }
     }
 }
+
+//CHAT JEBANY

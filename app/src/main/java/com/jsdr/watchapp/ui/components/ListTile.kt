@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextDecoration
 fun ListTile(
     media: MediaOverview,
     isWatched: Boolean,
+    showDeleteOption: Boolean = true,
     onClick: () -> Unit,
     onToggleWatched: () -> Unit,
     onDeleteClick: () -> Unit
@@ -96,13 +97,15 @@ fun ListTile(
                         onToggleWatched()
                     }
                 )
-                DropdownMenuItem(
-                    text = { Text("Usuń z listy", color = Color.Red) },
-                    onClick = {
-                        expanded = false
-                        onDeleteClick()
-                    }
-                )
+                if (showDeleteOption) {
+                    DropdownMenuItem(
+                        text = { Text("Usuń z listy", color = Color.Red) },
+                        onClick = {
+                            expanded = false
+                            onDeleteClick()
+                        }
+                    )
+                }
             }
         }
     }

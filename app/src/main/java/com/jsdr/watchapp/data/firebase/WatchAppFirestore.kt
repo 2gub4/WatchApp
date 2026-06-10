@@ -245,6 +245,9 @@ object WatchAppFirestore {
                     }
                     transaction.set(ratingRef, rating)
                     transaction.update(userRef, "ratingsCount", FieldValue.increment(1L))
+                    val listRef = userRef.collection("lists").document("rated")
+                    val arrayField = if (isMovie) "movies" else "series"
+                    transaction.update(listRef, arrayField, FieldValue.arrayUnion(mediaId))
                 }.await()
             } catch (e: Exception) {
                 Log.e("MovieFirestore", "Could not add media rating", e)
@@ -262,6 +265,9 @@ object WatchAppFirestore {
                     if (snapshot.exists()) {
                         transaction.delete(ratingRef)
                         transaction.update(userRef, "ratingsCount", FieldValue.increment(-1L))
+                        val listRef = userRef.collection("lists").document("rated")
+                        val arrayField = if (isMovie) "movies" else "series"
+                        transaction.update(listRef, arrayField, FieldValue.arrayRemove(mediaId))
                     }
                 }.await()
             } catch (e: Exception) {
@@ -329,6 +335,11 @@ object WatchAppFirestore {
         }
 
         suspend fun removeMediaFromList(userId: String, listId: String, mediaId: Int, isMovie: Boolean) {
+            if (listId == "rated") {
+                Log.w("watchappfirestore", "attempted to remove item from rated list directly")
+                throw Exception("nie mozna recznie usunac elementu z tej listy")
+            }
+
             val userRef = firestoreDb.collection("users").document(userId)
             val listRef = userRef.collection("lists").document(listId)
             val arrayField = if (isMovie) "movies" else "series"
@@ -358,3 +369,6 @@ object WatchAppFirestore {
         }
     }
 }
+
+
+//CHAT JEBANY
