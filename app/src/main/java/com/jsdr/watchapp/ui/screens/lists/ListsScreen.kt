@@ -276,16 +276,17 @@ fun ListButton(
                     modifier = Modifier.background(DarkBackground)
                 ) {
                     DropdownMenuItem(
+                        text = { Text("Zmień nazwę", color = Color.White) },
+                        onClick = {
+                            expanded = false
+                            // DODAĆ FUNKCJONALNOŚĆ
+                        }
+                    )
+                    DropdownMenuItem(
                         text = { Text("Usuń listę", color = Color.Red) },
                         onClick = {
                             expanded = false
                             onDeleteClick()
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Zmień nazwę", color = Color.White) },
-                        onClick = {
-                            expanded = false
                         }
                     )
                 }

@@ -111,6 +111,19 @@ object WatchAppFirestore {
             }
         }
 
+        suspend fun getUsernames(): List<String> {
+            return try {
+                val snap = firestoreDb.collection("users").get().await()
+                snap.documents.mapNotNull { document ->
+                    document.getString("username")
+                }
+            }
+            catch (e: Exception) {
+                Log.e("WatchAppFirestore", "Could not receive list of usernames", e)
+                emptyList()
+            }
+        }
+
         object Updates {
             suspend fun updateUsername(userId: String, username: String) {
                 firestoreDb.collection("users")
@@ -181,6 +194,16 @@ object WatchAppFirestore {
                 Log.e("WatchApp Firestore", "Could not delete user list with id: $listId", e)
             }
         }
+
+//        suspend fun changeListName(userId: String, listId: String, newName: String) {
+//            try {
+//                val listsRef = firestoreDb.collection("users").document(userId).collection("lists")
+//                //dokończyć
+//                val listToChange = listsRef.document(listId)
+//                listToChange.update("name", newName).await()
+//            }
+//        }
+
 
         suspend fun getListsContainingMedia(userId: String, mediaId: Int, isMovie: Boolean): List<String> {
             if (userId.isEmpty()) return emptyList()
