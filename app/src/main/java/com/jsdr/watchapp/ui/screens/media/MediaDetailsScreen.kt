@@ -1,5 +1,5 @@
 package com.jsdr.watchapp.ui.screens.media
-
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -103,6 +103,7 @@ fun MediaDetailsScreen(
 
     var showRatingsDialog by remember { mutableStateOf(false) }
     var showCustomListsDialog by remember { mutableStateOf(false) }
+    var showDeleteRatingDialog by remember { mutableStateOf(false) }
 
     val title = when (val state = uiState) {
         is MediaDetailsUiState.MovieSuccess -> state.profile.movieDetails.title
@@ -430,6 +431,22 @@ fun MediaDetailsScreen(
                                 .padding(16.dp)
                         ) {
 
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Usuń opinię",
+                                    tint = Color.Red,
+
+                                    modifier = Modifier.clickable {
+                                        showDeleteRatingDialog = true
+                                    }
+                                )
+                            }
+
                             Spacer(modifier = Modifier.height(12.dp))
 
                             Box(
@@ -728,6 +745,59 @@ fun MediaDetailsScreen(
                         text = "OK",
                         color = BrandPurple
                     )
+                }
+            }
+        )
+    }
+    if (showDeleteRatingDialog) {
+
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteRatingDialog = false
+            },
+
+            containerColor = DarkBackground,
+
+            title = {
+                Text(
+                    text = "Usuń opinię",
+                    color = Color.White
+                )
+            },
+
+            text = {
+                Text(
+                    text = "Czy na pewno chcesz usunąć tę opinię?",
+                    color = Color.White
+                )
+            },
+
+            confirmButton = {
+                TextButton(
+                    onClick = {
+
+                        viewModel.deleteRating(
+                            mediaId,
+                            isMovie
+                        )
+
+                        showDeleteRatingDialog = false
+                    }
+                ) {
+                    Text(
+                        text = "Usuń",
+                        color = Color.Red
+                    )
+                }
+            },
+
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteRatingDialog = false
+                    }
+                ) {
+                    Text("Anuluj")
                 }
             }
         )

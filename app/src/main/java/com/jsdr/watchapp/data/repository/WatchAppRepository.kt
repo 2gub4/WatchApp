@@ -332,6 +332,16 @@ object WatchAppRepository {
                 mediaId,
                 isMovie
             )
+        suspend fun deleteRating(
+            mediaId: Int,
+            isMovie: Boolean
+        ) {
+            WatchAppFirestore.Ratings.deleteMediaRating(
+                requireUserId,
+                mediaId,
+                isMovie
+            )
+        }
     }
 
 }

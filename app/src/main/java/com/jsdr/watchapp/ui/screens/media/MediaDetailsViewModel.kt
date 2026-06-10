@@ -178,6 +178,33 @@ class MediaDetailsViewModel : ViewModel() {
             }
         }
     }
-}
+    fun deleteRating(
+        mediaId: Int,
+        isMovie: Boolean
+    ) {
+        viewModelScope.launch {
+            try {
 
-//CHAT JEBANY
+                WatchAppRepository.Ratings.deleteRating(
+                    mediaId,
+                    isMovie
+                )
+
+                _userRating.value = null
+
+                loadProfile(
+                    mediaId,
+                    isMovie,
+                    false
+                )
+
+            } catch (e: Exception) {
+                Log.e(
+                    "MediaDetails",
+                    "Could not delete rating",
+                    e
+                )
+            }
+        }
+    }
+}
