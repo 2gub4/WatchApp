@@ -34,6 +34,7 @@ import com.jsdr.watchapp.ui.navigation.Screen
 import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.Icon
+
 @Composable
 fun ListDetailsScreen(
     movieList: UserList,
@@ -127,9 +128,15 @@ fun ListDetailsScreen(
                     items(viewState.mediaItems) { media ->
                         val isWatched = if (media.isMovie) viewState.watchedMovieIds.contains(media.id)
                         else viewState.watchedSeriesIds.contains(media.id)
+
+                        val isReadOnlyDeleteList = movieList.id in listOf("rated", "watched") ||
+                                movieList.name.equals("Ocenione", ignoreCase = true) ||
+                                movieList.name.equals("Obejrzane", ignoreCase = true)
+
                         ListTile(
                             media = media,
                             isWatched = isWatched,
+                            showDeleteOption = !isReadOnlyDeleteList,
                             onClick = { navController.navigate(Screen.MovieDetails.createRoute(media.id, media.isMovie)) },
                             onToggleWatched = { viewModel.toggleWatchedStatus(media.id, media.isMovie) },
                             onDeleteClick = { mediaToDelete = media }
