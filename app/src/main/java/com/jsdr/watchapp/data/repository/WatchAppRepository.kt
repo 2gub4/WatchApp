@@ -50,10 +50,8 @@ object WatchAppRepository {
     )
 
     val requireUserId: String get() = auth.currentUser?.uid ?: ""
-    //const val requireUserId: String = "test_user"
 
     object Auth {
-
         suspend fun signIn(email: String, password: String): Result<Boolean> {
             return try {
                 auth.signInWithEmailAndPassword(email, password).await()
@@ -91,7 +89,6 @@ object WatchAppRepository {
     }
 
     object User {
-
         suspend fun addNewUser(userDto: UserDto) {
             val newUser = User(
                 requireUserId,
@@ -120,7 +117,7 @@ object WatchAppRepository {
             }
         }
 
-        suspend fun update(subject: String /*Could be changed to enum*/, newValue: String) {
+        suspend fun update(subject: String, newValue: String) {
             when (subject) {
                 "username" -> WatchAppFirestore.Users.Updates.updateUsername(requireUserId, newValue)
                 "gender" -> WatchAppFirestore.Users.Updates.updateGender(requireUserId, newValue)
@@ -132,7 +129,6 @@ object WatchAppRepository {
     }
 
     object Lists {
-
         suspend fun getUserLists(): List<UserList> {
             return WatchAppFirestore.Users.getUserLists(requireUserId)
         }
@@ -151,42 +147,50 @@ object WatchAppRepository {
 
         suspend fun getMediaOverviewsForList(userList: UserList): List<MediaOverview> {
             return withContext(Dispatchers.IO) {
-                val sortedMovies = userList.movies.entries
-                    .sortedByDescending { it.value }
-                    .map { it.key.toInt() }
-                val sortedSeries = userList.series.entries
-                    .sortedByDescending { it.value }
-                    .map { it.key.toInt() }
-                val moviesDeferred = sortedMovies.map { movieId ->
+                val movieItems = userList.movies.entries.map { Triple(it.key.toInt(), it.value, true) }
+                val seriesItems = userList.series.entries.map { Triple(it.key.toInt(), it.value, false) }
+
+                val combinedSortedItems = (movieItems + seriesItems).sortedByDescending { it.second }
+
+                val deferredItems = combinedSortedItems.map { item ->
+                    val mediaId = item.first
+                    val isMovie = item.third
                     async {
-                        val details = Movies.getApiMovieDetails(movieId)
-                        details?.let {
-                            MediaOverview(
-                                id = it.id,
-                                title = it.title,
-                                posterPath = it.posterPath,
-                                releaseDate = it.releaseDate,
-                                isMovie = true
-                            )
+                        if (isMovie) {
+                            val details = Movies.getApiMovieDetails(mediaId)
+                            if (details != null) {
+                                MediaOverview(
+                                    id = details.id,
+                                    title = details.title,
+                                    posterPath = details.posterPath,
+                                    releaseDate = details.releaseDate,
+                                    isMovie = true
+                                )
+                            } else null
+                        } else {
+                            val details = TvSeries.getApiTvSeriesDetails(mediaId)
+                            if (details != null) {
+                                MediaOverview(
+                                    id = details.id,
+                                    title = details.title,
+                                    posterPath = details.posterPath,
+                                    releaseDate = details.firstAired,
+                                    isMovie = false
+                                )
+                            } else null
                         }
                     }
                 }
-                val seriesDeferred = sortedSeries.map { seriesId ->
-                    async {
-                        val details = TvSeries.getApiTvSeriesDetails(seriesId)
-                        details?.let {
-                            MediaOverview(
-                                id = it.id,
-                                title = it.title,
-                                posterPath = it.posterPath,
-                                isMovie = false
-                            )
-                        }
+
+                val resultList = mutableListOf<MediaOverview>()
+                for (deferred in deferredItems) {
+                    val media = deferred.await()
+                    if (media != null) {
+                        resultList.add(media)
                     }
                 }
-                val movies = moviesDeferred.mapNotNull { it.await() }
-                val series = seriesDeferred.mapNotNull { it.await() }
-                movies + series
+
+                resultList
             }
         }
 
@@ -201,7 +205,6 @@ object WatchAppRepository {
     }
 
     object Movies {
-
         suspend fun getApiMovieDetails(movieId: Int): MovieDetailsDto? {
             return when (val response = TmdbApi.MoviesData.fetchMovieDetails(movieId)) {
                 is TmdbApiResult.OnSuccess -> response.data
@@ -300,19 +303,18 @@ object WatchAppRepository {
             }
         }
     }
-    object Ratings {
 
+    object Ratings {
         suspend fun saveRating(
             mediaId: Int,
             isMovie: Boolean,
             rating: com.jsdr.watchapp.data.models.entities.Rating
         ) {
-            val existing =
-                WatchAppFirestore.Ratings.getMediaRating(
-                    requireUserId,
-                    mediaId,
-                    isMovie
-                )
+            val existing = WatchAppFirestore.Ratings.getMediaRating(
+                requireUserId,
+                mediaId,
+                isMovie
+            )
             if (existing == null) {
                 WatchAppFirestore.Ratings.addMediaRating(
                     requireUserId,
@@ -329,15 +331,16 @@ object WatchAppRepository {
                 )
             }
         }
+
         suspend fun getRating(
             mediaId: Int,
             isMovie: Boolean
-        ) =
-            WatchAppFirestore.Ratings.getMediaRating(
-                requireUserId,
-                mediaId,
-                isMovie
-            )
+        ) = WatchAppFirestore.Ratings.getMediaRating(
+            requireUserId,
+            mediaId,
+            isMovie
+        )
+
         suspend fun deleteRating(
             mediaId: Int,
             isMovie: Boolean
@@ -349,5 +352,4 @@ object WatchAppRepository {
             )
         }
     }
-
 }

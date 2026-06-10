@@ -1,3 +1,4 @@
+// ListDetailsViewModel.kt
 package com.jsdr.watchapp.ui.screens.lists
 
 import androidx.lifecycle.ViewModel
@@ -30,14 +31,16 @@ class ListDetailsViewModel : ViewModel() {
                 val allLists = WatchAppRepository.Lists.getUserLists()
                 val fullList = allLists.find { it.name.equals(listName, ignoreCase = true) }
                 val watchedList = allLists.find { it.id == "watched" }
+
                 if (fullList != null) {
-                    val media = WatchAppRepository.Lists.getMediaOverviewsForList(fullList)
+                    val mediaItems = WatchAppRepository.Lists.getMediaOverviewsForList(fullList)
+
                     _viewState.value = _viewState.value.copy(
                         isLoading = false,
                         listInfo = fullList,
-                        mediaItems = media,
-                        watchedMovieIds = watchedList?.movies?.keys?.map { it.toInt() }?.toSet() ?: emptySet(),
-                        watchedSeriesIds = watchedList?.series?.keys?.map { it.toInt() }?.toSet() ?: emptySet()
+                        mediaItems = mediaItems,
+                        watchedMovieIds = watchedList?.movies?.keys?.map { it.toInt() }.orEmpty().toSet(),
+                        watchedSeriesIds = watchedList?.series?.keys?.map { it.toInt() }.orEmpty().toSet()
                     )
                 } else {
                     _viewState.value = _viewState.value.copy(isLoading = false, error = "Brak listy")
@@ -51,6 +54,7 @@ class ListDetailsViewModel : ViewModel() {
     fun toggleWatchedStatus(mediaId: Int, isMovie: Boolean) {
         val isWatched = if (isMovie) _viewState.value.watchedMovieIds.contains(mediaId)
         else _viewState.value.watchedSeriesIds.contains(mediaId)
+
         viewModelScope.launch {
             try {
                 if (isWatched) {
