@@ -1,5 +1,5 @@
 package com.jsdr.watchapp.ui.screens.user_profile
-
+import com.jsdr.watchapp.data.repository.WatchAppRepository
 import android.annotation.SuppressLint
 import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
@@ -35,6 +35,49 @@ fun ProfileScreen(
     viewModel: UserProfileViewModel = viewModel()
 ) {
     val userProfile by viewModel.userProfileState.collectAsState()
+    val currentUser by WatchAppRepository.currentUserFlow.collectAsState()
+    if (currentUser == null) {
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Text(
+                text = "👤",
+                fontSize = 80.sp
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = {
+                    navController.navigate(Screen.Login.route)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = BrandPurple
+                )
+            ) {
+                Text("Zaloguj się")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(
+                onClick = {
+                    navController.navigate(Screen.Register.route)
+                }
+            ) {
+                Text("Zarejestruj się")
+            }
+        }
+
+        return
+    }
     var showUsernameDialog by remember { mutableStateOf(false) }
     var showEmailDialog by remember { mutableStateOf(false) }
     var showBirthDialog by remember { mutableStateOf(false) }
@@ -130,7 +173,11 @@ fun ProfileScreen(
                         .clip(RoundedCornerShape(20.dp))
                         .background(Color.Red.copy(alpha = 0.7f))
                         .clickable {
+                        WatchAppRepository.Auth.signOut()
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0)
                         }
+                    }
                         .padding(14.dp),
                     contentAlignment = Alignment.Center
                 ) {

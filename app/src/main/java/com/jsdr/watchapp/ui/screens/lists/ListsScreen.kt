@@ -26,6 +26,7 @@ import com.jsdr.watchapp.data.models.entities.UserList
 import com.jsdr.watchapp.ui.navigation.Screen
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import com.jsdr.watchapp.data.repository.WatchAppRepository
 import kotlinx.coroutines.delay
 
 @Composable
@@ -34,7 +35,9 @@ fun ListsScreen(
     viewModel: ListsViewModel = viewModel()
 ) {
     val viewState by viewModel.viewState.collectAsState()
+    val currentUser by WatchAppRepository.currentUserFlow.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
+    var showLoginRequiredDialog by remember { mutableStateOf(false) }
     var newListName by remember { mutableStateOf("") }
     var newListDescription by remember { mutableStateOf("") }
     var listToDelete by remember { mutableStateOf<UserList?>(null) }
@@ -76,7 +79,14 @@ fun ListsScreen(
                 .size(56.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(BrandPurple)
-                .clickable { showAddDialog = true },
+                .clickable {
+
+                    if (currentUser == null) {
+                        showLoginRequiredDialog = true
+                    } else {
+                        showAddDialog = true
+                    }
+                },
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -204,6 +214,38 @@ fun ListsScreen(
                 }
             )
         }
+    }
+    if (showLoginRequiredDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showLoginRequiredDialog = false
+            },
+            containerColor = DarkBackground,
+            title = {
+                Text(
+                    text = "Brak dostępu",
+                    color = Color.White
+                )
+            },
+            text = {
+                Text(
+                    text = "Musisz się zalogować, aby korzystać z tej funkcji.",
+                    color = Color.White
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLoginRequiredDialog = false
+                    }
+                ) {
+                    Text(
+                        text = "OK",
+                        color = BrandPurple
+                    )
+                }
+            }
+        )
     }
 }
 

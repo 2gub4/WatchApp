@@ -49,7 +49,7 @@ object WatchAppRepository {
         initialValue = auth.currentUser?.uid
     )
 
-    //val requireUserId: String get() = auth.currentUser?.uid ?: throw IllegalStateException("No user logged in!")
+//    val requireUserId: String get() = auth.currentUser?.uid ?: throw IllegalStateException("No user logged in!")
     const val requireUserId: String = "test_user"
 
     object Auth {

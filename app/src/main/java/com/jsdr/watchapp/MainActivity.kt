@@ -28,6 +28,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.jsdr.watchapp.data.firebase.DataSeeder
 import com.jsdr.watchapp.data.repository.WatchAppRepository
+import com.jsdr.watchapp.ui.screens.auth.LoginScreen
+import com.jsdr.watchapp.ui.screens.auth.RegisterScreen
 
 val DarkBackground = Color(0xFF212121)
 val BrandPurple = Color(0xFF7F52FF)
@@ -127,6 +129,13 @@ fun WatchApp() {
                     isMovie = isMovie,
                     navController = navController
                 )
+            }
+            composable(Screen.Login.route) {
+                LoginScreen(navController = navController)
+            }
+
+            composable(Screen.Register.route) {
+                RegisterScreen(navController = navController)
             }
         }
     }

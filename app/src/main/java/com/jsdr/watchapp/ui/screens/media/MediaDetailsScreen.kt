@@ -71,6 +71,8 @@ fun MediaDetailsScreen(
     viewModel: MediaDetailsViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val currentUser by WatchAppRepository.currentUserFlow.collectAsState()
+    var showLoginRequiredDialog by remember { mutableStateOf(false) }
     val interactionState by viewModel.interactionState.collectAsState()
     val userRating by viewModel.userRating.collectAsState()
 
@@ -320,6 +322,10 @@ fun MediaDetailsScreen(
                             contentDescription = "Ulubione",
                             tint = BrandPurple,
                             modifier = Modifier.clickable {
+                                if (currentUser == null) {
+                                    showLoginRequiredDialog = true
+                                    return@clickable
+                                }
                                 viewModel.toggleListStatus(
                                     "favourites",
                                     interactionState.isFavorite,
@@ -335,6 +341,10 @@ fun MediaDetailsScreen(
                             contentDescription = "Do obejrzenia (Bucketlist)",
                             tint = if (isBucketlistEnabled) BrandPurple else Color.DarkGray,
                             modifier = Modifier.clickable(enabled = isBucketlistEnabled) {
+                                if (currentUser == null) {
+                                    showLoginRequiredDialog = true
+                                    return@clickable
+                                }
                                 viewModel.toggleListStatus(
                                     "bucketlist",
                                     interactionState.isInBucketlist,
@@ -349,6 +359,10 @@ fun MediaDetailsScreen(
                             contentDescription = "Dodaj do wybranej listy",
                             tint = BrandPurple,
                             modifier = Modifier.clickable {
+                                if (currentUser == null) {
+                                    showLoginRequiredDialog = true
+                                    return@clickable
+                                }
                                 showCustomListsDialog = true
                             }
                         )
@@ -358,6 +372,10 @@ fun MediaDetailsScreen(
                             contentDescription = "Obejrzane",
                             tint = BrandPurple,
                             modifier = Modifier.clickable {
+                                if (currentUser == null) {
+                                    showLoginRequiredDialog = true
+                                    return@clickable
+                                }
                                 viewModel.toggleListStatus(
                                     "watched",
                                     interactionState.isWatched,
@@ -382,8 +400,13 @@ fun MediaDetailsScreen(
                                     color = BrandPurple,
                                     fontSize = 40.sp,
                                     modifier = Modifier.clickable {
-                                        overallRating = i
-                                        showRatingsDialog = true
+
+                                        if (currentUser == null) {
+                                            showLoginRequiredDialog = true
+                                        } else {
+                                            overallRating = i
+                                            showRatingsDialog = true
+                                        }
                                     }
                                 )
                             }
@@ -411,7 +434,12 @@ fun MediaDetailsScreen(
 
                             Box(
                                 modifier = Modifier.clickable {
-                                    showRatingsDialog = true
+
+                                    if (currentUser == null) {
+                                        showLoginRequiredDialog = true
+                                    } else {
+                                        showRatingsDialog = true
+                                    }
                                 }
                             ) {
                                 StarDisplay(
@@ -517,6 +545,14 @@ fun MediaDetailsScreen(
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(8.dp))
                                         .clickable {
+                                            if (currentUser == null) {
+                                                showLoginRequiredDialog = true
+                                                return@clickable
+                                            }
+                                            if (currentUser == null) {
+                                                showLoginRequiredDialog = true
+                                                return@clickable
+                                            }
                                             viewModel.toggleListStatus(
                                                 listId = customList.listId,
                                                 currentStatus = customList.containsMedia,
@@ -663,6 +699,38 @@ fun MediaDetailsScreen(
                 }
             )
         }
+    }
+    if (showLoginRequiredDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showLoginRequiredDialog = false
+            },
+            containerColor = DarkBackground,
+            title = {
+                Text(
+                    text = "Brak dostępu",
+                    color = Color.White
+                )
+            },
+            text = {
+                Text(
+                    text = "Musisz się zalogować, aby korzystać z tej funkcji.",
+                    color = Color.White
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLoginRequiredDialog = false
+                    }
+                ) {
+                    Text(
+                        text = "OK",
+                        color = BrandPurple
+                    )
+                }
+            }
+        )
     }
 }
 @Composable

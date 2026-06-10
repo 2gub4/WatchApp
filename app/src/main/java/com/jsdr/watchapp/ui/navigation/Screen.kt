@@ -14,6 +14,9 @@ sealed class Screen(val route: String, val icon: ImageVector?) {
     object Profile : Screen("profile", Icons.Default.Person)
     object Settings : Screen("settings", null)
     object Statistics : Screen("statistics", null)
+
+    object Login : Screen("login", null)
+    object Register : Screen("register", null)
     object ListDetails : Screen("list_details/{listName}/{listDescription}", null) {
 
         fun createRoute(
