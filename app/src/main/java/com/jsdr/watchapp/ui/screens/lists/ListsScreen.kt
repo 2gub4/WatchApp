@@ -14,6 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -23,10 +25,8 @@ import androidx.navigation.NavController
 import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
 import com.jsdr.watchapp.data.models.entities.UserList
-import com.jsdr.watchapp.ui.navigation.Screen
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import com.jsdr.watchapp.data.repository.WatchAppRepository
+import com.jsdr.watchapp.ui.navigation.Screen
 import kotlinx.coroutines.delay
 
 @Composable
@@ -36,11 +36,11 @@ fun ListsScreen(
 ) {
     val viewState by viewModel.viewState.collectAsState()
     val currentUser by WatchAppRepository.currentUserFlow.collectAsState()
+
     var showAddDialog by remember { mutableStateOf(false) }
     var showLoginRequiredDialog by remember { mutableStateOf(false) }
-    var newListName by remember { mutableStateOf("") }
-    var newListDescription by remember { mutableStateOf("") }
     var listToDelete by remember { mutableStateOf<UserList?>(null) }
+    var listToEdit by remember { mutableStateOf<UserList?>(null) } // Stan dla edytowanej listy
 
     LaunchedEffect(Unit) {
         viewModel.loadLists()
@@ -57,13 +57,16 @@ fun ListsScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(viewState.usersLists/*.filter { it.id != "watched" }*/) { list ->
-                    val isDefault = list.id in listOf("favourites", "bucketlist", "watched")
+                    val isDefault = list.id in listOf("favourites", "bucketlist", "watched", "rated")
                     ListButton(
                         userList = list,
                         showOptions = !isDefault,
                         onClick = {
                             if (list.description.isNullOrBlank()) list.description = "Brak opisu"
                             navController.navigate(Screen.ListDetails.createRoute(list.name, list.description!!))
+                        },
+                        onEditClick = {
+                            listToEdit = list
                         },
                         onDeleteClick = {
                             listToDelete = list
@@ -72,6 +75,7 @@ fun ListsScreen(
                 }
             }
         }
+
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
@@ -80,7 +84,6 @@ fun ListsScreen(
                 .clip(RoundedCornerShape(16.dp))
                 .background(BrandPurple)
                 .clickable {
-
                     if (currentUser == null) {
                         showLoginRequiredDialog = true
                     } else {
@@ -96,94 +99,39 @@ fun ListsScreen(
                 modifier = Modifier.size(32.dp)
             )
         }
-        if (showAddDialog) {
-            val isNameDuplicate = viewState.usersLists.any { it.name.equals(newListName.trim(), ignoreCase = true) }
-            val isFormValid = newListName.isNotBlank() && !isNameDuplicate
-            val focusRequester = remember { FocusRequester() }
-            LaunchedEffect(Unit) {
-                delay(100)
-                focusRequester.requestFocus()
-            }
 
-            AlertDialog(
-                onDismissRequest = { showAddDialog = false },
-                containerColor = DarkBackground,
-                title = { Text("Nowa lista", color = Color.White) },
-                text = {
-                    Column {
-                        OutlinedTextField(
-                            value = newListName,
-                            onValueChange = { newListName = it },
-                            label = { Text("Nazwa listy") },
-                            singleLine = true,
-                            isError = isNameDuplicate,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .focusRequester(focusRequester),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                errorTextColor = Color.White,
-                                focusedBorderColor = BrandPurple,
-                                focusedLabelColor = BrandPurple,
-                                cursorColor = BrandPurple,
-                                errorBorderColor = Color.Red,
-                                errorLabelColor = Color.Red,
-                                errorCursorColor = Color.Red
-                            )
-                        )
-                        if (isNameDuplicate) {
-                            Text(
-                                text = "Lista o tej nazwie już istnieje.",
-                                color = Color.Red,
-                                fontSize = 12.sp,
-                                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        OutlinedTextField(
-                            value = newListDescription,
-                            onValueChange = { newListDescription = it },
-                            label = { Text("Opis listy") },
-                            modifier = Modifier.fillMaxWidth(),
-                            minLines = 2,
-                            maxLines = 3,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedBorderColor = BrandPurple,
-                                focusedLabelColor = BrandPurple,
-                                cursorColor = BrandPurple
-                            )
-                        )
-                    }
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            if (isFormValid) {
-                                viewModel.createList(newListName.trim(), newListDescription.trim())
-                                newListName = ""
-                                newListDescription = ""
-                                showAddDialog = false
-                            }
-                        },
-                        enabled = isFormValid
-                    ) {
-                        Text("Utwórz", color = if (isFormValid) BrandPurple else Color.Gray)
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = {
-                        newListName = ""
-                        newListDescription = ""
-                        showAddDialog = false
-                    }) {
-                        Text("Anuluj", color = Color.Gray)
-                    }
+        // Dialog dodawania nowej listy
+        if (showAddDialog) {
+            ListActionDialog(
+                title = "Nowa lista",
+                showDescriptionField = true,
+                existingLists = viewState.usersLists,
+                onDismiss = { showAddDialog = false },
+                onConfirm = { name, description ->
+                    viewModel.createList(name, description)
+                    showAddDialog = false
                 }
             )
         }
+
+        // Dialog edycji nazwy istniejącej listy
+        listToEdit?.let { list ->
+            ListActionDialog(
+                title = "Zmień nazwę",
+                initialName = list.name,
+                initialDescription = list.description ?: "",
+                showDescriptionField = false, // Przy edycji nazwy ukrywamy pole opisu
+                existingLists = viewState.usersLists,
+                currentListId = list.id,
+                onDismiss = { listToEdit = null },
+                onConfirm = { newName, _ ->
+                    viewModel.renameList(list.id, newName)
+                    listToEdit = null
+                }
+            )
+        }
+
+        // Dialog usuwania
         if (listToDelete != null) {
             AlertDialog(
                 onDismissRequest = { listToDelete = null },
@@ -206,6 +154,7 @@ fun ListsScreen(
             )
         }
     }
+
     if (showLoginRequiredDialog) {
         AlertDialog(
             onDismissRequest = {
@@ -245,6 +194,7 @@ fun ListButton(
     userList: UserList,
     showOptions: Boolean,
     onClick: () -> Unit,
+    onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -280,6 +230,7 @@ fun ListButton(
                         onClick = {
                             expanded = false
                             // DODAĆ FUNKCJONALNOŚĆ
+                            onEditClick()
                         }
                     )
                     DropdownMenuItem(
@@ -293,4 +244,105 @@ fun ListButton(
             }
         }
     }
+}
+
+@Composable
+fun ListActionDialog(
+    title: String,
+    initialName: String = "",
+    initialDescription: String = "",
+    showDescriptionField: Boolean = true,
+    existingLists: List<UserList>,
+    currentListId: String? = null,
+    onDismiss: () -> Unit,
+    onConfirm: (name: String, description: String) -> Unit
+) {
+    var listName by remember { mutableStateOf(initialName) }
+    var listDescription by remember { mutableStateOf(initialDescription) }
+
+    val isNameDuplicate = existingLists.any {
+        it.name.equals(listName.trim(), ignoreCase = true) && it.id != currentListId
+    }
+    val isFormValid = listName.trim().isNotBlank() && !isNameDuplicate
+
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        delay(100)
+        focusRequester.requestFocus()
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = DarkBackground,
+        title = { Text(text = title, color = Color.White) },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = listName,
+                    onValueChange = { listName = it },
+                    label = { Text("Nazwa listy") },
+                    singleLine = true,
+                    isError = isNameDuplicate,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        errorTextColor = Color.White,
+                        focusedBorderColor = BrandPurple,
+                        focusedLabelColor = BrandPurple,
+                        cursorColor = BrandPurple,
+                        errorBorderColor = Color.Red,
+                        errorLabelColor = Color.Red,
+                        errorCursorColor = Color.Red
+                    )
+                )
+                if (isNameDuplicate) {
+                    Text(
+                        text = "Lista o tej nazwie już istnieje.",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                    )
+                }
+                if (showDescriptionField) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = listDescription,
+                        onValueChange = { listDescription = it },
+                        label = { Text("Opis (opcjonalnie)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 2,
+                        maxLines = 3,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = BrandPurple,
+                            focusedLabelColor = BrandPurple,
+                            cursorColor = BrandPurple
+                        )
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (isFormValid) {
+                        onConfirm(listName.trim(), listDescription.trim())
+                    }
+                },
+                enabled = isFormValid
+            ) {
+                Text("Zapisz", color = if (isFormValid) BrandPurple else Color.Gray)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Anuluj", color = Color.Gray)
+            }
+        }
+    )
 }

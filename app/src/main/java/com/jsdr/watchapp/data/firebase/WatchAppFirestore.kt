@@ -47,6 +47,7 @@ object WatchAppFirestore {
                 batch.set(listsRef.document(DataSeeder.favouritesTemplate.id), DataSeeder.favouritesTemplate)
                 batch.set(listsRef.document(DataSeeder.watchedTemplate.id), DataSeeder.watchedTemplate)
                 batch.set(listsRef.document(DataSeeder.bucketlistTemplate.id), DataSeeder.bucketlistTemplate)
+                batch.set(listsRef.document(DataSeeder.ratedTemplate.id), DataSeeder.ratedTemplate)
                 batch.commit().await()
             } catch (e: Exception) {
                 Log.e("WatchAppFirestore", "Error creating user with default lists", e)
@@ -177,7 +178,7 @@ object WatchAppFirestore {
         }
 
         suspend fun deleteUserList(userId: String, listId: String) {
-            if (listId in listOf("favourites", "bucketlist", "watched")) {
+            if (listId in listOf("favourites", "bucketlist", "watched", "rated")) {
                 throw Exception("Illegal Action! Cannot delete default lists")
             }
             try {
@@ -195,14 +196,11 @@ object WatchAppFirestore {
             }
         }
 
-//        suspend fun changeListName(userId: String, listId: String, newName: String) {
-//            try {
-//                val listsRef = firestoreDb.collection("users").document(userId).collection("lists")
-//                //dokończyć
-//                val listToChange = listsRef.document(listId)
-//                listToChange.update("name", newName).await()
-//            }
-//        }
+        suspend fun changeListName(userId: String, listId: String, newName: String) {
+            val listsRef = firestoreDb.collection("users").document(userId).collection("lists")
+            val listToChange = listsRef.document(listId)
+            listToChange.update("name", newName).await()
+        }
 
 
         suspend fun getListsContainingMedia(userId: String, mediaId: Int, isMovie: Boolean): List<String> {

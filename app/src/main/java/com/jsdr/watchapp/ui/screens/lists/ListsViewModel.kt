@@ -28,7 +28,7 @@ class ListsViewModel : ViewModel() {
             _viewState.value = _viewState.value.copy(isLoading = true, error = null)
             try {
                 val lists = WatchAppRepository.Lists.getUserLists()
-                val defaultOrder = listOf("favourites", "bucketlist", "watched")
+                val defaultOrder = listOf("favourites", "bucketlist", "watched", "rated")
                 val defaultLists = lists
                     .filter {
                         it.id in defaultOrder
@@ -67,6 +67,17 @@ class ListsViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 WatchAppRepository.Lists.deleteList(listId)
+                loadLists()
+            } catch (e: Exception) {
+                _viewState.value = _viewState.value.copy(error = e.message)
+            }
+        }
+    }
+
+    fun renameList(listId: String, newName: String) {
+        viewModelScope.launch {
+            try {
+                WatchAppRepository.Lists.changeListName(listId, newName)
                 loadLists()
             } catch (e: Exception) {
                 _viewState.value = _viewState.value.copy(error = e.message)

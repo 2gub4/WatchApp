@@ -62,6 +62,14 @@ object DataSeeder {
         series = emptyList()
     )
 
+    val ratedTemplate = UserList(
+        id = "rated",
+        name = "Ocenione",
+        description = "Filmy i seriale, które oceniłeś",
+        movies = emptyList(),
+        series = emptyList()
+    )
+
     private val customListTest = UserList(
         name = "Guilty Pleasures",
         description = "Słabe produkcje, dobra zabawa",

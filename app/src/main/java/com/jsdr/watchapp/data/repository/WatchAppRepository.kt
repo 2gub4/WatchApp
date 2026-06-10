@@ -134,7 +134,7 @@ object WatchAppRepository {
     object Lists {
 
         suspend fun getUserLists(): List<UserList> {
-            return WatchAppFirestore.Users.getUserLists(requireUserId ?: "")
+            return WatchAppFirestore.Users.getUserLists(requireUserId)
         }
 
         suspend fun createList(list: UserList) {
@@ -183,6 +183,11 @@ object WatchAppRepository {
                 movies + series
             }
         }
+
+        suspend fun changeListName(listId: String, newName: String) {
+            if (requireUserId.isEmpty()) return
+            WatchAppFirestore.Lists.changeListName(requireUserId, listId, newName)
+        }
     }
 
     suspend fun addMediaToList(listId: String, mediaId: Int, isMovie: Boolean) {
@@ -204,8 +209,8 @@ object WatchAppRepository {
         suspend fun getMovieProfile(movieId: Int): MovieProfile? {
             return withContext(Dispatchers.IO) {
                 val apiMovieDetails = async { getApiMovieDetails(movieId) }
-                val potentialUserRating = async { WatchAppFirestore.Ratings.getMediaRating(requireUserId ?: "", movieId, true) }
-                val containingLists = async { WatchAppFirestore.Lists.getListsContainingMedia(requireUserId ?: "", movieId, true) }
+                val potentialUserRating = async { WatchAppFirestore.Ratings.getMediaRating(requireUserId, movieId, true) }
+                val containingLists = async { WatchAppFirestore.Lists.getListsContainingMedia(requireUserId, movieId, true) }
                 val details = apiMovieDetails.await() ?: return@withContext null
                 MovieProfile(
                     movieDetails = details,
@@ -214,24 +219,6 @@ object WatchAppRepository {
                 )
             }
         }
-//
-//        suspend fun getMovieProfile(movieId: Int): MovieProfile? {
-//            return withContext(Dispatchers.IO) {
-//                val apiMovieDetailsDeferred = async { getApiMovieDetails(movieId) }
-//                val potentialUserRatingDeferred = currentUserId?.let { uid ->
-//                    async { WatchAppFirestore.Ratings.getMediaRating(uid, movieId, true) }
-//                }
-//                val containingListsDeferred = currentUserId?.let { uid ->
-//                    async { WatchAppFirestore.Lists.getListsContainingMedia(uid, movieId, true) }
-//                }
-//                val details = apiMovieDetailsDeferred.await() ?: return@withContext null
-//                MovieProfile(
-//                    movieDetails = details,
-//                    rating = potentialUserRatingDeferred?.await(),
-//                    containingLists = containingListsDeferred?.await() ?: emptyList()
-//                )
-//            }
-//        }
 
         suspend fun getMoviePage(pageNumber: Int, listType: String): MoviesPageDto? {
             return withContext(Dispatchers.IO) {
@@ -314,14 +301,12 @@ object WatchAppRepository {
             isMovie: Boolean,
             rating: com.jsdr.watchapp.data.models.entities.Rating
         ) {
-
             val existing =
                 WatchAppFirestore.Ratings.getMediaRating(
                     requireUserId,
                     mediaId,
                     isMovie
                 )
-
             if (existing == null) {
                 WatchAppFirestore.Ratings.addMediaRating(
                     requireUserId,
