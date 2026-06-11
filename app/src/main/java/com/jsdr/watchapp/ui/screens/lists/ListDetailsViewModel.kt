@@ -1,4 +1,3 @@
-// ListDetailsViewModel.kt
 package com.jsdr.watchapp.ui.screens.lists
 
 import androidx.lifecycle.ViewModel
