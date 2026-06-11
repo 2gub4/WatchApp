@@ -1,6 +1,7 @@
 package com.jsdr.watchapp.data.repository
 
 import android.util.Log
+import androidx.compose.ui.graphics.Color
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -189,14 +190,17 @@ object WatchAppRepository {
                         resultList.add(media)
                     }
                 }
-
                 resultList
             }
         }
 
         suspend fun changeListName(listId: String, newName: String) {
             if (requireUserId.isEmpty()) return
-            WatchAppFirestore.Lists.changeListName(requireUserId, listId, newName)
+            WatchAppFirestore.Lists.Updates.changeListName(requireUserId, listId, newName)
+        }
+
+        suspend fun changeListColor(listId: String, newColor: Color) {
+            WatchAppFirestore.Lists.Updates.changeListColor(requireUserId, listId, newColor)
         }
     }
 

@@ -1,5 +1,6 @@
 package com.jsdr.watchapp.ui.screens.lists
 
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jsdr.watchapp.data.models.entities.UserList
@@ -84,4 +85,15 @@ class ListsViewModel : ViewModel() {
             }
         }
     }
+
+    fun changeListColor(listId: String, newColor: Color) {
+        viewModelScope.launch {
+            val user = WatchAppRepository.currentUserFlow.value
+            if (user != null) {
+                WatchAppRepository.Lists.changeListColor(listId, newColor)
+                loadLists()
+            }
+        }
+    }
+
 }
