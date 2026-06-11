@@ -246,24 +246,24 @@ fun ProfileScreen(
                 Column {
 
                     Text(
-                        text = "Pan",
+                        text = "Mężczyzna",
                         color = Color.White,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                viewModel.updateUserField("gender", "Pan")
+                                viewModel.updateUserField("gender", "Mężczyzna")
                                 showGenderDialog = false
                             }
                             .padding(12.dp)
                     )
 
                     Text(
-                        text = "Pani",
+                        text = "Kobieta",
                         color = Color.White,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                viewModel.updateUserField("gender", "Pani")
+                                viewModel.updateUserField("gender", "Kobieta")
                                 showGenderDialog = false
                             }
                             .padding(12.dp)
