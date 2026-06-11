@@ -223,15 +223,7 @@ fun ListButton(
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-//        Box(
-//            modifier = Modifier
-//                .size(24.dp)
-//                .clip(RoundedCornerShape(6.dp))
-//                .background(userList.color.toColor())
-//        )
-
         Spacer(modifier = Modifier.width(16.dp))
-
         Text(
             text = userList.name,
             color = Color.White,
@@ -239,7 +231,6 @@ fun ListButton(
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.weight(1f)
         )
-
         if (showOptions) {
             Box {
                 IconButton(onClick = { expanded = true }) {
