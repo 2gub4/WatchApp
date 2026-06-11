@@ -4,6 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,6 +28,7 @@ import androidx.navigation.NavController
 import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.DarkBackground
 import com.jsdr.watchapp.data.models.entities.UserList
+import com.jsdr.watchapp.data.models.toColor
 import com.jsdr.watchapp.data.repository.WatchAppRepository
 import com.jsdr.watchapp.ui.navigation.Screen
 import kotlinx.coroutines.delay
@@ -36,11 +40,11 @@ fun ListsScreen(
 ) {
     val viewState by viewModel.viewState.collectAsState()
     val currentUser by WatchAppRepository.currentUserFlow.collectAsState()
-
     var showAddDialog by remember { mutableStateOf(false) }
     var showLoginRequiredDialog by remember { mutableStateOf(false) }
     var listToDelete by remember { mutableStateOf<UserList?>(null) }
-    var listToEdit by remember { mutableStateOf<UserList?>(null) } // Stan dla edytowanej listy
+    var listToRecolor by remember { mutableStateOf<UserList?>(null) }
+    var listToEdit by remember { mutableStateOf<UserList?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.loadLists()
@@ -70,6 +74,9 @@ fun ListsScreen(
                         },
                         onDeleteClick = {
                             listToDelete = list
+                        },
+                        onColorChangeClick = {
+                            listToRecolor = list
                         }
                     )
                 }
@@ -100,7 +107,6 @@ fun ListsScreen(
             )
         }
 
-        // Dialog dodawania nowej listy
         if (showAddDialog) {
             ListActionDialog(
                 title = "Nowa lista",
@@ -114,13 +120,12 @@ fun ListsScreen(
             )
         }
 
-        // Dialog edycji nazwy istniejącej listy
         listToEdit?.let { list ->
             ListActionDialog(
                 title = "Zmień nazwę",
                 initialName = list.name,
                 initialDescription = list.description ?: "",
-                showDescriptionField = false, // Przy edycji nazwy ukrywamy pole opisu
+                showDescriptionField = false,
                 existingLists = viewState.usersLists,
                 currentListId = list.id,
                 onDismiss = { listToEdit = null },
@@ -131,7 +136,6 @@ fun ListsScreen(
             )
         }
 
-        // Dialog usuwania
         if (listToDelete != null) {
             AlertDialog(
                 onDismissRequest = { listToDelete = null },
@@ -150,6 +154,16 @@ fun ListsScreen(
                     TextButton(onClick = { listToDelete = null }) {
                         Text("Anuluj", color = Color.Gray)
                     }
+                }
+            )
+        }
+
+        listToRecolor?.let { list ->
+            ColorPickerDialog(
+                onDismiss = { listToRecolor = null },
+                onColorSelected = { newColor ->
+                    viewModel.changeListColor(list.id, newColor)
+                    listToRecolor = null
                 }
             )
         }
@@ -195,19 +209,29 @@ fun ListButton(
     showOptions: Boolean,
     onClick: () -> Unit,
     onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    onColorChangeClick: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
-            .background(BrandPurple)
+            .background(userList.color.toColor())
             .clickable { onClick() }
             .padding(horizontal = 20.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        verticalAlignment = Alignment.CenterVertically
     ) {
+//        Box(
+//            modifier = Modifier
+//                .size(24.dp)
+//                .clip(RoundedCornerShape(6.dp))
+//                .background(userList.color.toColor())
+//        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
         Text(
             text = userList.name,
             color = Color.White,
@@ -215,6 +239,7 @@ fun ListButton(
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.weight(1f)
         )
+
         if (showOptions) {
             Box {
                 IconButton(onClick = { expanded = true }) {
@@ -229,8 +254,14 @@ fun ListButton(
                         text = { Text("Zmień nazwę", color = Color.White) },
                         onClick = {
                             expanded = false
-                            // DODAĆ FUNKCJONALNOŚĆ
                             onEditClick()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Zmień kolor", color = Color.White) },
+                        onClick = {
+                            expanded = false
+                            onColorChangeClick()
                         }
                     )
                     DropdownMenuItem(
@@ -247,6 +278,48 @@ fun ListButton(
 }
 
 @Composable
+fun ColorPickerDialog(
+    onDismiss: () -> Unit,
+    onColorSelected: (Color) -> Unit
+) {
+    val predefinedColors = listOf(
+        BrandPurple, Color(0xFFF44336), Color(0xFFE91E63), Color(0xFF9C27B0),
+        Color(0xFF3F51B5), Color(0xFF2196F3), Color(0xFF03A9F4), Color(0xFF00BCD4),
+        Color(0xFF009688), Color(0xFF4CAF50), Color(0xFF8BC34A), Color(0xFFFFEB3B),
+        Color(0xFFFFC107), Color(0xFFFF9800), Color(0xFFFF5722), Color(0xFF795548)
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = DarkBackground,
+        title = { Text(text = "Wybierz kolor listy", color = Color.White) },
+        text = {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(4),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                items(predefinedColors) { color ->
+                    Box(
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(color)
+                            .clickable { onColorSelected(color) }
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Anuluj", color = Color.Gray)
+            }
+        }
+    )
+}
+
+@Composable
 fun ListActionDialog(
     title: String,
     initialName: String = "",
@@ -259,12 +332,10 @@ fun ListActionDialog(
 ) {
     var listName by remember { mutableStateOf(initialName) }
     var listDescription by remember { mutableStateOf(initialDescription) }
-
     val isNameDuplicate = existingLists.any {
         it.name.equals(listName.trim(), ignoreCase = true) && it.id != currentListId
     }
     val isFormValid = listName.trim().isNotBlank() && !isNameDuplicate
-
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {

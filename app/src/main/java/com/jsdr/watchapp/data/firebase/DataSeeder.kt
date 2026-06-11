@@ -1,10 +1,11 @@
 package com.jsdr.watchapp.data.firebase
 
+import android.graphics.Color
 import com.jsdr.watchapp.data.models.entities.Rating
 import com.jsdr.watchapp.data.models.entities.User
 import com.jsdr.watchapp.data.models.entities.UserList
 import com.jsdr.watchapp.data.repository.WatchAppRepository
-import kotlin.collections.emptyList
+import com.jsdr.watchapp.data.models.toHex
 
 object DataSeeder {
     private val testUsr = User(
@@ -71,8 +72,9 @@ object DataSeeder {
     )
 
     private val customListTest = UserList(
-        name = "Guilty Pleasures",
-        description = "Słabe produkcje, dobra zabawa",
+        name = "Color Test Bis",
+        color = androidx.compose.ui.graphics.Color.Red.toHex(),
+        description = "Brak opisu",
         movies = emptyMap(),
         series = emptyMap()
     )
@@ -121,5 +123,9 @@ object DataSeeder {
 
     suspend fun addRatedMoviesListTo2gub4Account() {
         WatchAppFirestore.Lists.createUserList("5ubFTs7QLieLUPhpo2sTbFbeWZ12", ratedTemplate)
+    }
+
+    suspend fun createListWithColor() {
+        WatchAppFirestore.Lists.createUserList("jMoNKggNTZSalj91CcOJryMWD3k1", customListTest)
     }
 }

@@ -54,6 +54,7 @@ class MainActivity : ComponentActivity() {
                         //WatchAppRepository.Auth.signIn("jakub.sosna@o2.pl", "test123")
                         //WatchAppRepository.Auth.signOut()
                         //DataSeeder.addRatedMoviesListTo2gub4Account()
+                        //DataSeeder.createListWithColor()
                     }
                 }
             }

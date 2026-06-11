@@ -1,6 +1,7 @@
 package com.jsdr.watchapp.data.firebase
 
 import android.util.Log
+import androidx.compose.ui.graphics.Color
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
@@ -9,6 +10,7 @@ import com.google.firebase.firestore.SetOptions
 import com.jsdr.watchapp.data.models.entities.Rating
 import com.jsdr.watchapp.data.models.entities.User
 import com.jsdr.watchapp.data.models.entities.UserList
+import com.jsdr.watchapp.data.models.toHex
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
@@ -196,12 +198,6 @@ object WatchAppFirestore {
             }
         }
 
-        suspend fun changeListName(userId: String, listId: String, newName: String) {
-            val listsRef = firestoreDb.collection("users").document(userId).collection("lists")
-            val listToChange = listsRef.document(listId)
-            listToChange.update("name", newName).await()
-        }
-
         suspend fun getListsContainingMedia(userId: String, mediaId: Int, isMovie: Boolean): List<String> {
             if (userId.isEmpty()) return emptyList()
             return try {
@@ -218,6 +214,25 @@ object WatchAppFirestore {
             } catch (e: Exception) {
                 Log.e("WatchAppFirestore", "Could not receive Lists", e)
                 emptyList()
+            }
+        }
+
+        object Updates {
+            suspend fun changeListName(userId: String, listId: String, newName: String) {
+                val listsRef = firestoreDb.collection("users").document(userId).collection("lists")
+                val listToChange = listsRef.document(listId)
+                listToChange.update("name", newName).await()
+            }
+
+            suspend fun changeListColor(userId: String, listId: String, newColor: Color) {
+                try {
+                    if (userId.isEmpty()) return
+                    if (listId in listOf("watched", "rated", "bucketlist", "favourites")) return
+                    val listToChange = firestoreDb.collection("users").document(userId).collection("lists").document(listId)
+                    listToChange.update("color", newColor.toHex())
+                } catch (_: Exception) {
+                    Log.e("WatchAppFirestore", "Could not change list color")
+                }
             }
         }
 
