@@ -1,4 +1,14 @@
 package com.jsdr.watchapp.ui.screens.auth
+
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -25,6 +35,8 @@ fun RegisterScreen(
 ) {
 
     val uiState by viewModel.uiState.collectAsState()
+    var passwordVisible by remember { mutableStateOf(false) }
+    var repeatPasswordVisible by remember { mutableStateOf(false) }
     LaunchedEffect(uiState.isSuccess) {
 
         if (uiState.isSuccess) {
@@ -212,6 +224,29 @@ fun RegisterScreen(
                 )
             },
             modifier = Modifier.fillMaxWidth(),
+            visualTransformation =
+                if (passwordVisible)
+                    VisualTransformation.None
+                else
+                    PasswordVisualTransformation(),
+
+            trailingIcon = {
+                IconButton(
+                    onClick = {
+                        passwordVisible = !passwordVisible
+                    }
+                ) {
+                    Icon(
+                        imageVector =
+                            if (passwordVisible)
+                                Icons.Default.Visibility
+                            else
+                                Icons.Default.VisibilityOff,
+                        contentDescription = null,
+                        tint = BrandPurple
+                    )
+                }
+            },
 
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
@@ -238,6 +273,29 @@ fun RegisterScreen(
                 )
             },
             modifier = Modifier.fillMaxWidth(),
+            visualTransformation =
+                if (repeatPasswordVisible)
+                    VisualTransformation.None
+                else
+                    PasswordVisualTransformation(),
+
+            trailingIcon = {
+                IconButton(
+                    onClick = {
+                        repeatPasswordVisible = !repeatPasswordVisible
+                    }
+                ) {
+                    Icon(
+                        imageVector =
+                            if (repeatPasswordVisible)
+                                Icons.Default.Visibility
+                            else
+                                Icons.Default.VisibilityOff,
+                        contentDescription = null,
+                        tint = BrandPurple
+                    )
+                }
+            },
 
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,

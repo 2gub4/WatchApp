@@ -1,5 +1,14 @@
 package com.jsdr.watchapp.ui.screens.auth
 
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -17,12 +26,14 @@ import com.jsdr.watchapp.BrandPurple
 import com.jsdr.watchapp.ui.navigation.Screen
 
 @Composable
+
 fun LoginScreen(
     navController: NavController,
     viewModel: AuthViewModel = viewModel()
 ) {
 
     val uiState by viewModel.uiState.collectAsState()
+    var passwordVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.isSuccess) {
 
@@ -92,6 +103,30 @@ fun LoginScreen(
                 )
             },
             modifier = Modifier.fillMaxWidth(),
+
+            visualTransformation =
+                if (passwordVisible)
+                    VisualTransformation.None
+                else
+                    PasswordVisualTransformation(),
+
+            trailingIcon = {
+                IconButton(
+                    onClick = {
+                        passwordVisible = !passwordVisible
+                    }
+                ) {
+                    Icon(
+                        imageVector =
+                            if (passwordVisible)
+                                Icons.Default.Visibility
+                            else
+                                Icons.Default.VisibilityOff,
+                        contentDescription = null,
+                        tint = BrandPurple
+                    )
+                }
+            },
 
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,

@@ -117,9 +117,9 @@ object DataSeeder {
         }
     }
 
-    suspend fun testUserRegistration() {
-        WatchAppRepository.Auth.registerUser("jakub.sosna@o2.pl", "test123", "2gub4")
-    }
+//    suspend fun testUserRegistration() {
+//        WatchAppRepository.Auth.registerUser("jakub.sosna@o2.pl", "test123", "2gub4")
+//    }
 
     suspend fun addRatedMoviesListTo2gub4Account() {
         WatchAppFirestore.Lists.createUserList("5ubFTs7QLieLUPhpo2sTbFbeWZ12", ratedTemplate)

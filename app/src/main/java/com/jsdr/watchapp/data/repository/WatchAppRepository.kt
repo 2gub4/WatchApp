@@ -67,7 +67,7 @@ object WatchAppRepository {
             auth.signOut()
         }
 
-        suspend fun registerUser(email: String, password: String, username: String): Result<Boolean> {
+        suspend fun registerUser( email: String, password: String, username: String, birthYear: Int, gender: String): Result<Boolean> {
             return try {
                 val authResult = auth.createUserWithEmailAndPassword(email, password).await()
                 val firebaseUser = authResult.user
@@ -75,7 +75,9 @@ object WatchAppRepository {
                     val newUser = User(
                         uid = firebaseUser.uid,
                         email = email,
-                        username = username
+                        username = username,
+                        birthYear = birthYear,
+                        gender = gender
                     )
                     WatchAppFirestore.Users.addUser(newUser)
                     Result.success(true)

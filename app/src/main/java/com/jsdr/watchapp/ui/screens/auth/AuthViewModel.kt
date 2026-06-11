@@ -233,7 +233,9 @@ class AuthViewModel : ViewModel() {
                 WatchAppRepository.Auth.registerUser(
                     email = state.email,
                     password = state.password,
-                    username = state.username
+                    username = state.username,
+                    birthYear = birthYear,
+                    gender = state.gender
                 )
 
             _uiState.value =
