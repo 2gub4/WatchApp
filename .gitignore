@@ -1,0 +1,27 @@
+*.iml
+.gradle
+/local.properties
+local.properties
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# IntelliJ IDEA / Android Studio
+.idea/
+*.iws
+
+# Secrets & sensitive configs
+secrets/
+/secrets/
+**/google-services.json
+google-services.json
+secrets.properties
+
+# Signing keys
+*.jks
+*.keystore
+
+# Documentation / Scratch notes
+*.docx
